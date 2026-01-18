@@ -53,6 +53,34 @@ const Games = () => {
 
   return (
     <div className="w-full px-3 py-2">
+      {/* ⭐ Shine Effect */}
+      <style>{`
+        .auto-shine {
+          position: relative;
+          overflow: hidden;
+          border-radius: 8px;
+        }
+        .shine-layer {
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            120deg,
+            transparent 30%,
+            rgba(255,255,255,0.9) 50%,
+            transparent 70%
+          );
+          transform: translateX(-150%);
+          pointer-events: none;
+        }
+        .shine-animate .shine-layer {
+          animation: shineSwipe 1.4s ease-out infinite;
+        }
+        @keyframes shineSwipe {
+          0% { transform: translateX(-150%) skewX(-15deg); }
+          100% { transform: translateX(150%) skewX(-15deg); }
+        }
+      `}</style>
+
       {/* SECTION TITLE */}
       <div className="mb-3">
         <h2 className="inline-block bg-gradient-to-r from-orange-500 to-red-600 text-white text-lg font-bold px-4 py-2 rounded">
@@ -65,13 +93,14 @@ const Games = () => {
         {games.slice(0, showMore ? games.length : 6).map((game) => (
           <div
             key={game.id}
-            className="relative rounded-xl overflow-hidden border-2 border-green-500 shadow-lg cursor-pointer"
+            className="relative auto-shine shine-animate rounded-xl overflow-hidden border-2 border-green-500 shadow-lg cursor-pointer"
           >
             <img
               src={game.img}
               alt={game.title}
               className="w-full h-42 md:h-52 object-cover"
             />
+             <div className="shine-layer"></div>
 
             {/* OVERLAY */}
             <div className="absolute inset-0 flex items-end justify-center">
