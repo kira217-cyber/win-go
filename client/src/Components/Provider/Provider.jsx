@@ -4,6 +4,7 @@ import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import { motion } from "framer-motion";
 import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaHandshake } from "react-icons/fa";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -36,7 +37,8 @@ const Provider = () => {
     <div className="w-full py-6 px-4 rounded-lg">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="inline-block bg-gradient-to-r from-orange-500 to-red-600 text-white text-lg font-bold px-4 py-2 rounded">
+        <h2 className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-600 text-white text-lg font-bold px-4 py-2 rounded">
+          <FaHandshake color="white" size={24} />
           পার্টনার প্রোভাইডার
         </h2>
 
@@ -76,14 +78,13 @@ const Provider = () => {
             <motion.div
               whileHover={{ scale: 1.03 }}
               transition={{ duration: 0.3 }}
-              className="h-20 rounded-lg flex items-center justify-center
-              bg-gradient-to-r from-red-700 to-red-500
-              shadow-md cursor-pointer overflow-hidden"
+              className="h-12 rounded-lg flex items-center justify-center
+              shadow-md cursor-pointer overflow-hidden border-2 border-green-500/30"
             >
               <img
                 src={provider.img}
                 alt="provider"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover "
               />
             </motion.div>
           </SwiperSlide>

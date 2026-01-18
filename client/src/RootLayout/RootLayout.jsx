@@ -13,7 +13,7 @@ const RootLayout = () => {
       }}
       className="h-screen flex justify-center"
     >
-      <div className="w-full md:w-[60%] lg:w-[40%] xl:w-[30%] overflow-y-auto  hide-scrollbar">
+      <div className="w-full md:w-[60%] lg:w-[40%] xl:w-[30%] overflow-y-auto hide-scrollbar">
         <Navbar />
         <div
           className=""

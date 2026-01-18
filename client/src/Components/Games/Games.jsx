@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { IoGameController } from "react-icons/io5";
 
 const Games = () => {
   const [showMore, setShowMore] = useState(false);
@@ -83,8 +84,8 @@ const Games = () => {
 
       {/* SECTION TITLE */}
       <div className="mb-3">
-        <h2 className="inline-block bg-gradient-to-r from-orange-500 to-red-600 text-white text-lg font-bold px-4 py-2 rounded">
-          সেরা গেমস খেলুন
+        <h2 className="flex items-center gap-2 w-2/3 md:w-1/2 bg-gradient-to-r from-orange-500 to-red-600 text-white text-md font-bold px-2 py-2 rounded">
+          <IoGameController color="white" size={28} /> সেরা গেমস খেলুন
         </h2>
       </div>
 
@@ -100,7 +101,7 @@ const Games = () => {
               alt={game.title}
               className="w-full h-42 md:h-52 object-cover"
             />
-             <div className="shine-layer"></div>
+            <div className="shine-layer"></div>
 
             {/* OVERLAY */}
             <div className="absolute inset-0 flex items-end justify-center">

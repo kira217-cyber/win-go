@@ -78,7 +78,7 @@ const PaymentMethod = () => {
             <motion.div
               whileHover={{ scale: 1.03 }}
               transition={{ duration: 0.3 }}
-              className="h-20 rounded-lg flex items-center justify-center
+              className="h-12 rounded-lg flex items-center justify-center
               bg-gradient-to-r from-red-700 to-red-500
               shadow-md cursor-pointer overflow-hidden"
             >

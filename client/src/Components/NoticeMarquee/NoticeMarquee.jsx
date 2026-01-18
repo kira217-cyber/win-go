@@ -1,10 +1,11 @@
 import React from "react";
 import Marquee from "react-fast-marquee";
 import { FaBullhorn, FaGift, FaInfoCircle } from "react-icons/fa";
+import { FaMicrophoneLines } from "react-icons/fa6";
 
 const NoticeMarquee = () => {
   return (
-    <div className="bg-gradient-to-r from-orange-500 via-red-600 to-red-900 py-4 overflow-hidden m-2 rounded-full shadow-lg">
+    <div className="relative bg-gradient-to-r from-orange-500 via-red-600 to-red-900 py-2 pl-11 overflow-hidden m-2 rounded-md shadow-lg">
       <Marquee
         speed={45}
         gradient={false}
@@ -28,6 +29,9 @@ const NoticeMarquee = () => {
           </span>
         </div>
       </Marquee>
+      <div className="absolute h-16 bottom-0 left-0 bg-white p-2">
+        <FaMicrophoneLines color="orange" size={24} className="mt-6" />
+      </div>
     </div>
   );
 };
