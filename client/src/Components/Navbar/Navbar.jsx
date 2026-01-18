@@ -3,6 +3,7 @@ import { motion } from "framer-motion";
 import { FaSyncAlt } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
 import useAuth from "../../hook/useAuth";
+import { Link } from "react-router";
 
 const Navbar = () => {
   const { user, loading } = useAuth();
@@ -84,21 +85,24 @@ const Navbar = () => {
       ) : (
         /* NOT LOGGED IN UI */
         <div className="flex gap-3">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.9 }}
-            className="bg-white text-red-600 text-sm px-4 py-2 rounded-lg font-bold shadow cursor-pointer"
-          >
-            Login
-          </motion.button>
-
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.9 }}
-            className="bg-black/30 text-white text-sm px-4 py-2 rounded-lg font-bold border border-white/30 shadow cursor-pointer"
-          >
-            Register
-          </motion.button>
+          <Link to="/login">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.9 }}
+              className="bg-white text-red-600 text-sm px-4 py-2 rounded-lg font-bold shadow cursor-pointer"
+            >
+              Login
+            </motion.button>
+          </Link>
+          <Link to="/register">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.9 }}
+              className="bg-black/30 text-white text-sm px-4 py-2 rounded-lg font-bold border border-white/30 shadow cursor-pointer"
+            >
+              Register
+            </motion.button>
+          </Link>
         </div>
       )}
     </motion.div>

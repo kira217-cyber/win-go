@@ -1,16 +1,17 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
+import banner from "../../assets/banner.png";
 
 import "swiper/css";
 import "swiper/css/pagination";
 
 const Slider = () => {
   const slides = [
-    "https://images.unsplash.com/photo-1522202176988-66273c2fd55f",
-    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
-    "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429",
-    "https://images.unsplash.com/photo-1498050108023-c5249f4df085",
+    banner,
+    "https://i.ibb.co.com/xSc19Jk5/gambling-4178457-1280.jpg",
+    "https://i.ibb.co.com/hFGZkNyH/casino-3491252-1280.jpg",
+    "https://i.ibb.co.com/Mytxm3Lt/luck-839037-1280.jpg",
   ];
 
   return (
@@ -33,7 +34,7 @@ const Slider = () => {
             <img
               src={img}
               alt={`slide-${index}`}
-              className="w-full h-44 object-cover"
+              className="w-full h-44"
             />
           </SwiperSlide>
         ))}

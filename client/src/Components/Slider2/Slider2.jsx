@@ -1,14 +1,14 @@
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Pagination, Autoplay } from "swiper/modules";
-
+import banner from "../../assets/banner.png";
 import "swiper/css";
 import "swiper/css/pagination";
 
 const Slider2 = () => {
   const slides = [
-    "https://images.unsplash.com/photo-1522202176988-66273c2fd55f",
-    "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee",
+    banner,
+    "https://i.ibb.co.com/Mytxm3Lt/luck-839037-1280.jpg",
   ];
 
   return (

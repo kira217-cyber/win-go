@@ -18,7 +18,7 @@ const BottomNavbar = () => {
   const normalClass = "text-white";
 
   return (
-    <div className="sticky bottom-0 z-40 bg-white">
+    <div className="sticky bottom-0 z-40 ">
       {/* padding for scroll gap */}
       <div className="h-20 relative">
         <div className="absolute bottom-2 left-0 right-0 px-3">
@@ -50,7 +50,7 @@ const BottomNavbar = () => {
             </NavLink>
 
             {/* AUTH BASED */}
-            {!user ? (
+            {user ? (
               <NavLink
                 to="/profile"
                 className={({ isActive }) =>

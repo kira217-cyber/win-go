@@ -13,13 +13,22 @@ const RootLayout = () => {
       }}
       className="h-screen flex justify-center"
     >
-      <div className="w-full md:w-[60%] lg:w-[40%] xl:w-[30%] bg-white overflow-y-auto">
+      <div className="w-full md:w-[60%] lg:w-[40%] xl:w-[30%] overflow-y-auto  hide-scrollbar">
         <Navbar />
-       <div className="mt-2">
-        <Outlet />
-        </div> 
-          <BottomNavbar />
-      
+        <div
+          className=""
+          style={{
+            backgroundImage: "url('/bg.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+            backgroundRepeat: "no-repeat",
+            backgroundAttachment: "fixed",
+          }}
+        >
+          <Outlet />
+           <BottomNavbar />
+        </div>
+       
       </div>
     </div>
   );

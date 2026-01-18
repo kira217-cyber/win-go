@@ -7,6 +7,8 @@ import Login from "../pages/Login/Login";
 import PrivateRoute from "../PrivateRoute/PrivateRoute";
 import RootLayout from "../RootLayout/RootLayout";
 import Home from "../pages/Home/Home";
+import Profile from "../pages/Profile/Profile";
+import Promotion from "../pages/Promotion/Promotion";
 
 export const routes = createBrowserRouter([
   {
@@ -23,6 +25,22 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Deposit />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "profile",
+        element: (
+          <PrivateRoute>  
+            <Profile />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "promotion",
+        element: (
+          <PrivateRoute>  
+            <Promotion />
           </PrivateRoute>
         ),
       },

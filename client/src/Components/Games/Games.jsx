@@ -7,47 +7,47 @@ const Games = () => {
     {
       id: 1,
       title: "Aviator",
-      img: "https://i.ibb.co/7bq8p7X/aviator.png",
+      img: "https://i.ibb.co.com/MD3yc4rw/Betway-Lucky-Lenny-betgames-500x500.webp",
     },
     {
       id: 2,
       title: "Crazy Time",
-      img: "https://i.ibb.co/ZV9L7Vk/crazytime.png",
+      img: "https://i.ibb.co.com/V01ssNTG/jack-in-a-pot-spin-gifts-square-440x440-2025-10-02.webp",
     },
     {
       id: 3,
       title: "Ludobet",
-      img: "https://i.ibb.co/DtP6pJd/ludobet.png",
+      img: "https://i.ibb.co.com/Q32BZmN2/333-Fat-Frogs-Power-Combo-500x500.webp",
     },
     {
       id: 4,
       title: "Dice",
-      img: "https://i.ibb.co/4d6f7yq/dice.png",
+      img: "https://i.ibb.co.com/twsnhdrf/Tiny-Toads.png",
     },
     {
       id: 5,
       title: "Roulette",
-      img: "https://i.ibb.co/2jMZQ1N/roulette.png",
+      img: "https://i.ibb.co.com/27VhBkT7/3-Lucky-Hippos-MGS-500x500.webp",
     },
     {
       id: 6,
       title: "Slots",
-      img: "https://i.ibb.co/yXH9P0R/slot.png",
+      img: "https://i.ibb.co.com/LH5vfXr/Mr-Oinksters-Holdand-Win-Booming-500x500.webp",
     },
     {
       id: 7,
       title: "Crash",
-      img: "https://i.ibb.co/z5N1d7Z/crash.png",
+      img: "https://i.ibb.co.com/XxDvtDQh/Pig-Farm.png",
     },
     {
       id: 8,
       title: "Spin Wheel",
-      img: "https://i.ibb.co/q1s4RXk/spin.png",
+      img: "https://i.ibb.co.com/ZRxgPqjZ/images.jpg",
     },
     {
       id: 9,
       title: "Poker",
-      img: "https://i.ibb.co/Gc9x4kz/poker.png",
+      img: "https://i.ibb.co.com/cS3W7tbv/1b55194385efebaabdeaaccfb1d8999e50be43278db64de55fae23bca408f562.png",
     },
   ];
 
@@ -74,7 +74,7 @@ const Games = () => {
             />
 
             {/* OVERLAY */}
-            <div className="absolute inset-0 bg-black/30 flex items-end justify-center">
+            <div className="absolute inset-0 flex items-end justify-center">
               <span className="text-white text-sm font-bold pb-2">
                 {game.title}
               </span>
