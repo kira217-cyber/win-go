@@ -1,6 +1,7 @@
 import React from "react";
 import { Outlet } from "react-router";
 import Navbar from "../Components/Navbar/Navbar";
+import BottomNavbar from "../Components/BottomNavbar/BottomNavbar";
 
 const RootLayout = () => {
   return (
@@ -14,7 +15,11 @@ const RootLayout = () => {
     >
       <div className="w-full md:w-[60%] lg:w-[40%] xl:w-[30%] bg-white overflow-y-auto">
         <Navbar />
+       <div className="mt-2">
         <Outlet />
+        </div> 
+          <BottomNavbar />
+      
       </div>
     </div>
   );
