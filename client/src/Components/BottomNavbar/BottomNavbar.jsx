@@ -1,4 +1,5 @@
 import React from "react";
+import { motion } from "framer-motion";
 import { NavLink } from "react-router";
 import {
   FaHome,
@@ -6,93 +7,124 @@ import {
   FaUserPlus,
   FaSignInAlt,
   FaUser,
+  FaSignOutAlt,
 } from "react-icons/fa";
 import useAuth from "../../hook/useAuth";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router";
 
 const BottomNavbar = () => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const activeClass =
-    "bg-gradient-to-r from-green-400 to-red-500 text-white shadow-md";
+    "bg-gradient-to-r from-green-400 to-indigo-500 text-white shadow-lg shadow-red-500/30";
 
-  const normalClass = "text-white";
+  const normalClass = "text-white hover:text-orange-300";
+
+  const handleLogout = () => {
+    logout();
+    toast.success("লগআউট সফল হয়েছে!", {
+      position: "top-center",
+      autoClose: 2000,
+    });
+    navigate("/");
+  };
 
   return (
-    <div className="sticky bottom-0 z-40 ">
-      {/* padding for scroll gap */}
-      <div className="h-20 relative">
-        <div className="absolute bottom-2 left-0 right-0 px-3">
-          <div className="bg-gradient-to-r from-orange-400 to-red-500 text-white shadow-md rounded-2xl shadow-xl py-2 px-3 flex justify-between items-center">
-            {/* HOME */}
+    <motion.div
+      initial={{ y: 50, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ duration: 0.4, ease: "easeOut" }}
+      className="sticky bottom-0 z-50 "
+    >
+      {/* Padding for content above bottom bar */}
+      <div className="h-6" />
+
+      {/* Main Bottom Bar */}
+      <div className="bg-gradient-to-r from-orange-500 via-red-600 to-red-900  shadow-2xl shadow-red-900/50 py-[0.5] flex justify-around items-center backdrop-blur-md border border-red-700/30">
+        {/* Home */}
+        <NavLink
+          to="/"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-1 p-1  text-xs md:text-sm font-medium transition-all duration-300 cursor-pointer ${
+              isActive ? activeClass : normalClass
+            }`
+          }
+        >
+          <FaHome className="text-xl md:text-2xl" />
+          Home
+        </NavLink>
+
+        {/* Promotion */}
+        <NavLink
+          to="/promotion"
+          className={({ isActive }) =>
+            `flex flex-col items-center gap-1 p-1  text-xs md:text-sm font-medium transition-all duration-300 cursor-pointer ${
+              isActive ? activeClass : normalClass
+            }`
+          }
+        >
+          <FaGift className="text-xl md:text-2xl" />
+          Promotion
+        </NavLink>
+
+        {/* Auth-based items */}
+        {user ? (
+          <>
+            {/* Profile */}
             <NavLink
-              to="/"
+              to="/profile"
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                `flex flex-col items-center gap-1 p-1  text-xs md:text-sm font-medium transition-all duration-300 cursor-pointer ${
                   isActive ? activeClass : normalClass
                 }`
               }
             >
-              <FaHome className="text-lg" />
-              Home
+              <FaUser className="text-xl md:text-2xl" />
+              Profile
             </NavLink>
 
-            {/* PROMOTION */}
+            {/* Logout */}
+            <button
+              onClick={handleLogout}
+              className={`flex flex-col items-center gap-1 p-1  text-xs md:text-sm font-medium transition-all duration-300 cursor-pointer ${normalClass} hover:bg-red-600/40`}
+            >
+              <FaSignOutAlt className="text-xl md:text-2xl" />
+              Logout
+            </button>
+          </>
+        ) : (
+          <>
+            {/* Register */}
             <NavLink
-              to="/promotion"
+              to="/register"
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
+                `flex flex-col items-center gap-1 p-1  text-xs md:text-sm font-medium transition-all duration-300 cursor-pointer ${
                   isActive ? activeClass : normalClass
                 }`
               }
             >
-              <FaGift className="text-lg" />
-              Promotion
+              <FaUserPlus className="text-xl md:text-2xl" />
+              Register
             </NavLink>
 
-            {/* AUTH BASED */}
-            {user ? (
-              <NavLink
-                to="/profile"
-                className={({ isActive }) =>
-                  `flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                    isActive ? activeClass : normalClass
-                  }`
-                }
-              >
-                <FaUser className="text-lg" />
-                Profile
-              </NavLink>
-            ) : (
-              <>
-                <NavLink
-                  to="/register"
-                  className={({ isActive }) =>
-                    `flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      isActive ? activeClass : normalClass
-                    }`
-                  }
-                >
-                  <FaUserPlus className="text-lg" />
-                  Register
-                </NavLink>
-
-                <NavLink
-                  to="/login"
-                  className={({ isActive }) =>
-                    `flex flex-col items-center gap-1 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
-                      isActive ? activeClass : normalClass
-                    }`
-                  }
-                >
-                  <FaSignInAlt className="text-lg" />
-                  Login
-                </NavLink>
-              </>
-            )}
-          </div>
-        </div>
+            {/* Login */}
+            <NavLink
+              to="/login"
+              className={({ isActive }) =>
+                `flex flex-col items-center gap-1 p-1  text-xs md:text-sm font-medium transition-all duration-300 cursor-pointer ${
+                  isActive ? activeClass : normalClass
+                }`
+              }
+            >
+              <FaSignInAlt className="text-xl md:text-2xl" />
+              Login
+            </NavLink>
+          </>
+        )}
       </div>
-    </div>
+    </motion.div>
   );
 };
 

@@ -13,12 +13,12 @@ const RootLayout = () => {
       }}
       className="h-screen flex justify-center"
     >
-      <div className="w-full md:w-[60%] lg:w-[40%] xl:w-[30%] overflow-y-auto hide-scrollbar">
+      <div className="w-full md:w-[60%] lg:w-[40%] xl:w-[30%] overflow-y-auto [scrollbar-width:none]">
         <Navbar />
         <div
           className=""
           style={{
-            backgroundImage: "url('/bg.jpg')",
+            backgroundImage: "url('/bg.png')",
             backgroundSize: "cover",
             backgroundPosition: "center",
             backgroundRepeat: "no-repeat",
