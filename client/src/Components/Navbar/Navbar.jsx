@@ -1,123 +1,159 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { FaSyncAlt } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
 import { Link } from "react-router";
 import { IoLogIn } from "react-icons/io5";
 import { FaRegRegistered } from "react-icons/fa";
-import { PiHandDepositBold } from "react-icons/pi";
-import { PiHandWithdrawBold } from "react-icons/pi";
+import { PiHandDepositBold, PiHandWithdrawBold } from "react-icons/pi";
 import useAuth from "../../hook/useAuth";
+import NavHeader from "../NavHeader/NavHeader";
+import { useLanguage } from "../../context/LanguageProvider";
+
 
 const Navbar = () => {
   const { user, loading } = useAuth();
 
-  // 🔹 Skeleton Loader
+  // 🌐 Language state
+  const [langOpen, setLangOpen] = useState(false);
+  const { language, changeLanguage } = useLanguage()
+
   if (loading) {
     return (
       <div className="w-full h-16 bg-gradient-to-r from-orange-500 via-red-600 to-red-900 px-4 flex items-center justify-between">
-        <Skeleton
-          width={80}
-          height={22}
-          baseColor="#7f1d1d"
-          highlightColor="#fb923c"
-        />
-        <Skeleton
-          width={110}
-          height={32}
-          borderRadius={999}
-          baseColor="#7f1d1d"
-          highlightColor="#fb923c"
-        />
-        <Skeleton
-          width={80}
-          height={32}
-          borderRadius={10}
-          baseColor="#7f1d1d"
-          highlightColor="#fb923c"
-        />
+        <Skeleton width={80} height={22} />
+        <Skeleton width={110} height={32} borderRadius={999} />
+        <Skeleton width={80} height={32} borderRadius={10} />
       </div>
     );
   }
 
   return (
-    <motion.div
-      initial={{ y: -30, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-      className="w-full h-16 bg-gradient-to-r from-orange-500 via-red-600 to-red-900 px-4 flex items-center justify-between shadow-lg"
-    >
-      {/* LEFT LOGO */}
-      <Link to="/">
-        <motion.h1
-          whileTap={{ scale: 0.95 }}
-          className="text-white font-extrabold text-xl md:text-2xl tracking-wider cursor-pointer select-none"
-        >
-          WiN GO
-        </motion.h1>
-      </Link>
-      {/* LOGGED IN UI */}
-      {user ? (
-        <>
-          {/* BALANCE */}
-          <motion.div
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-2 bg-black/25 px-4 py-2 rounded-full text-white text-sm font-semibold shadow-md cursor-pointer"
-          >
-            <span>100 BDT</span>
-            <FaSyncAlt className="text-xs opacity-80" />
-          </motion.div>
+    <>
+      <NavHeader />
 
-          {/* ACTION BUTTONS */}
-          <div className="flex gap-3">
-            <Link to={'/withdraw'}>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.9 }}
-                className="bg-orange-500 flex items-center gap-1 font-bold hover:bg-orange-400 text-white text-sm px-2 py-1 md:px-4 md:py-2 rounded-lg shadow-md cursor-pointer"
-              >
-                <PiHandWithdrawBold size={24} />
-                WD
-              </motion.button>
-            </Link>
-            <Link to={'/deposit'}>
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.9 }}
-                className="bg-red-500 flex items-center gap-1 font-bold hover:bg-red-400 text-white text-sm px-2 py-1 md:px-4 md:py-2 rounded-lg shadow-md cursor-pointer"
-              >
-                <PiHandDepositBold size={24} />
-                DP
-              </motion.button>
-            </Link>
+      <motion.div
+        initial={{ y: -30, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.4 }}
+        className="w-full h-16 bg-gradient-to-r from-orange-500 via-red-600 to-red-900 px-4 flex items-center justify-between shadow-lg relative"
+      >
+        {/* LEFT LOGO */}
+        <Link to="/">
+          <h1 className="text-white font-extrabold text-xl md:text-2xl tracking-wider cursor-pointer">
+            WiN GO
+          </h1>
+        </Link>
+
+        {/* RIGHT SIDE */}
+        <div className="flex items-center gap-4 relative">
+          {/* 🌐 LANGUAGE BUTTON */}
+          {/* 🌐 LANGUAGE BUTTON */}
+          <div className="relative">
+            <motion.button
+              whileTap={{ scale: 0.95 }}
+              onClick={() => setLangOpen(!langOpen)}
+              className="flex items-center gap-2
+      bg-teal-700 hover:bg-yellow-400
+      border border-teal-400
+      px-4 py-2 rounded-lg
+      text-white hover:text-black
+      font-semibold cursor-pointer
+      transition-colors duration-200"
+            >
+              <img
+                src={
+                  language === "Bangla"
+                    ? "https://flagcdn.com/w20/bd.png"
+                    : "https://flagcdn.com/w20/gb.png"
+                }
+                alt="flag"
+                className="w-5 h-4 rounded-sm object-cover"
+              />
+              {language === "Bangla" ? "বাংলা" : "English"}
+            </motion.button>
+
+            {/* DROPDOWN */}
+            <AnimatePresence>
+              {langOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute right-0 mt-2 w-40 bg-teal-800 rounded-xl shadow-lg overflow-hidden z-50"
+                >
+                  <button
+                    onClick={() => {
+                      changeLanguage("Bangla"); // ← setLanguage → changeLanguage
+                      setLangOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-teal-700 cursor-pointer"
+                  >
+                    <img
+                      src="https://flagcdn.com/w20/bd.png"
+                      alt="Bangla flag"
+                      className="w-5 h-4 rounded-sm object-cover"
+                    />{" "}
+                    বাংলা
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      changeLanguage("English"); // ← setLanguage → changeLanguage
+                      setLangOpen(false);
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 text-white hover:bg-teal-700 cursor-pointer"
+                  >
+                    <img
+                      src="https://flagcdn.com/w20/gb.png"
+                      alt="English flag"
+                      className="w-5 h-4 rounded-sm object-cover"
+                    />{" "}
+                    English
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
-        </>
-      ) : (
-        /* NOT LOGGED IN UI */
-        <div className="flex gap-3">
-          <Link to="/login">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.9 }}
-              className="bg-white flex items-center gap-1 text-red-600 text-sm px-4 py-2 rounded-lg font-bold shadow cursor-pointer"
-            >
-              <IoLogIn size={24} />
-              Login
-            </motion.button>
-          </Link>
-          <Link to="/register">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.9 }}
-              className="bg-black/30 flex items-center gap-1 text-white text-sm px-4 py-2 rounded-lg font-bold border border-white/30 shadow cursor-pointer"
-            >
-              <FaRegRegistered size={24} />
-              Register
-            </motion.button>
-          </Link>
+
+          {/* AUTH UI */}
+          {user ? (
+            <>
+              <div className="flex items-center gap-2 bg-black/25 px-4 py-2 rounded-full text-white text-sm font-semibold cursor-pointer">
+                <span>100 BDT</span>
+                <FaSyncAlt className="text-xs" />
+              </div>
+
+              <Link to="/withdraw">
+                <button className="bg-orange-500 px-3 py-2 rounded-lg text-white font-bold cursor-pointer">
+                  <PiHandWithdrawBold size={22} />
+                </button>
+              </Link>
+
+              <Link to="/deposit">
+                <button className="bg-red-500 px-3 py-2 rounded-lg text-white font-bold cursor-pointer">
+                  <PiHandDepositBold size={22} />
+                </button>
+              </Link>
+            </>
+          ) : (
+            <>
+              <Link to="/login">
+                <button className="bg-white text-red-600 px-4 py-2 rounded-lg font-bold cursor-pointer">
+                  <IoLogIn size={20} />
+                </button>
+              </Link>
+
+              <Link to="/register">
+                <button className="bg-black/30 text-white px-4 py-2 rounded-lg font-bold cursor-pointer">
+                  <FaRegRegistered size={20} />
+                </button>
+              </Link>
+            </>
+          )}
         </div>
-      )}
-    </motion.div>
+      </motion.div>
+    </>
   );
 };
 

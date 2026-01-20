@@ -1,7 +1,10 @@
 import React, { useState } from "react";
 import { IoGameController } from "react-icons/io5";
+import { useLanguage } from "../../context/LanguageProvider";
+
 
 const Games = () => {
+  const { isBangla } = useLanguage(); // LanguageContext থেকে ভাষা নেয়া
   const [showMore, setShowMore] = useState(false);
 
   const games = [
@@ -52,6 +55,11 @@ const Games = () => {
     },
   ];
 
+  // ভাষা অনুযায়ী টেক্সট
+  const sectionTitle = isBangla ? "সেরা গেমস খেলুন" : "Play the Best Games";
+
+  const buttonText = isBangla ? "আরও দেখুন" : "See More";
+
   return (
     <div className="w-full px-3 py-2">
       {/* ⭐ Shine Effect */}
@@ -85,7 +93,7 @@ const Games = () => {
       {/* SECTION TITLE */}
       <div className="mb-3">
         <h2 className="flex items-center gap-2 w-2/3 md:w-1/2 bg-gradient-to-r from-orange-500 to-red-600 text-white text-md font-bold px-2 py-2 rounded">
-          <IoGameController color="white" size={28} /> সেরা গেমস খেলুন
+          <IoGameController color="white" size={28} /> {sectionTitle}
         </h2>
       </div>
 
@@ -103,7 +111,7 @@ const Games = () => {
             />
             <div className="shine-layer"></div>
 
-            {/* OVERLAY */}
+            {/* OVERLAY - গেম টাইটেল সবসময় English */}
             <div className="absolute inset-0 flex items-end justify-center">
               <span className="text-white text-sm font-bold pb-2">
                 {game.title}
@@ -120,7 +128,7 @@ const Games = () => {
             onClick={() => setShowMore(true)}
             className="bg-gradient-to-r cursor-pointer from-orange-500 to-red-600 text-white px-6 py-2 rounded-full font-semibold shadow-lg active:scale-95"
           >
-            See More
+            {buttonText}
           </button>
         </div>
       )}

@@ -6,6 +6,7 @@ import Games from "../../Components/Games/Games";
 import BottomNavbar from "../../Components/BottomNavbar/BottomNavbar";
 import Provider from "../../Components/Provider/Provider";
 import PaymentMethod from "../../Components/PaymentMethod/PaymentMethod";
+import Footer from "../../Components/Footer/Footer";
 
 const Home = () => {
   return (
@@ -16,6 +17,7 @@ const Home = () => {
       <Games />
       <Provider />
       <PaymentMethod />
+      <Footer />
     </div>
   );
 };

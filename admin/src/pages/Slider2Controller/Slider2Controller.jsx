@@ -6,23 +6,23 @@ import { toast } from "react-toastify";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaUpload, FaTimes, FaEdit, FaTrash } from "react-icons/fa";
 
-const fetchProviders = async () => {
+const fetchSliders = async () => {
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_URL}/api/providers`,
+    `${import.meta.env.VITE_API_URL}/api/slider/two`,
   );
   return data;
 };
 
-const ProviderController = () => {
+const Slider2Controller = () => {
   const queryClient = useQueryClient();
-  const { data: providers = [], isLoading } = useQuery({
-    queryKey: ["providers"],
-    queryFn: fetchProviders,
+  const { data: sliders = [], isLoading } = useQuery({
+    queryKey: ["sliders"],
+    queryFn: fetchSliders,
   });
 
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [editingProvider, setEditingProvider] = useState(null);
+  const [editingSlider, setEditingSlider] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
   const [showConfirm, setShowConfirm] = useState(false);
   const [deleteId, setDeleteId] = useState(null);
@@ -51,26 +51,26 @@ const ProviderController = () => {
       if (data.image && data.image[0]) {
         formData.append("image", data.image[0]);
       }
-      if (editingProvider) {
+      if (editingSlider) {
         return axios.put(
-          `${import.meta.env.VITE_API_URL}/api/providers/${editingProvider._id}`,
+          `${import.meta.env.VITE_API_URL}/api/slider/two/${editingSlider._id}`,
           formData,
         );
       } else {
         return axios.post(
-          `${import.meta.env.VITE_API_URL}/api/providers`,
+          `${import.meta.env.VITE_API_URL}/api/slider/two`,
           formData,
         );
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries(["providers"]);
+      queryClient.invalidateQueries(["sliders"]);
       reset();
       setPreviewImage(null);
       setAddModalOpen(false);
       setEditModalOpen(false);
-      setEditingProvider(null);
-      toast.success(editingProvider ? "Provider updated" : "Provider added");
+      setEditingSlider(null);
+      toast.success(editingSlider ? "Slider updated" : "Slider added");
     },
     onError: (error) => toast.error(error.message),
   });
@@ -78,10 +78,10 @@ const ProviderController = () => {
   // Delete mutation
   const deleteMutation = useMutation({
     mutationFn: (id) =>
-      axios.delete(`${import.meta.env.VITE_API_URL}/api/providers/${id}`),
+      axios.delete(`${import.meta.env.VITE_API_URL}/api/slider/two/${id}`),
     onSuccess: () => {
-      queryClient.invalidateQueries(["providers"]);
-      toast.success("Provider deleted");
+      queryClient.invalidateQueries(["sliders"]);
+      toast.success("Slider deleted");
       setShowConfirm(false);
     },
     onError: (error) => toast.error(error.message),
@@ -95,10 +95,10 @@ const ProviderController = () => {
     setAddModalOpen(true);
   };
 
-  const startEdit = (provider) => {
+  const startEdit = (slider) => {
     reset();
-    setEditingProvider(provider);
-    setPreviewImage(`${import.meta.env.VITE_API_URL}${provider.imageUrl}`);
+    setEditingSlider(slider);
+    setPreviewImage(`${import.meta.env.VITE_API_URL}${slider.imageUrl}`);
     setEditModalOpen(true);
   };
 
@@ -114,7 +114,7 @@ const ProviderController = () => {
   return (
     <div className="p-4 md:p-6 bg-gradient-to-br from-orange-950 via-red-950 to-black text-gray-100 min-h-screen">
       <h1 className="text-2xl font-bold mb-6 text-orange-200">
-        Provider Controller
+        Slider Controller
       </h1>
 
       {/* Add Button */}
@@ -122,38 +122,38 @@ const ProviderController = () => {
         onClick={startAdd}
         className="bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 text-white font-medium py-3 px-6 rounded-xl mb-8 flex items-center gap-2 transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
       >
-        <FaUpload /> Add Provider
+        <FaUpload /> Add Slider
       </button>
 
-      {/* Providers List */}
+      {/* Sliders List */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-        {providers.length > 0 ? (
-          providers.map((provider) => (
+        {sliders.length > 0 ? (
+          sliders.map((slider) => (
             <div
-              key={provider._id}
+              key={slider._id}
               className="bg-black/40 backdrop-blur-md border border-red-800/50 rounded-xl shadow-xl overflow-hidden transform hover:scale-105 transition-transform duration-300"
             >
               <img
-                src={`${import.meta.env.VITE_API_URL}${provider.imageUrl}`}
-                alt="provider"
+                src={`${import.meta.env.VITE_API_URL}${slider.imageUrl}`}
+                alt="slider"
                 className="w-full h-40 object-cover"
               />
               <div className="p-4">
                 <p className="text-sm text-orange-200 mb-1">
-                  Added at: {new Date(provider.createdAt).toLocaleString()}
+                  Added at: {new Date(slider.createdAt).toLocaleString()}
                 </p>
                 <p className="text-sm text-orange-200 mb-4">
-                  Updated at: {new Date(provider.updatedAt).toLocaleString()}
+                  Updated at: {new Date(slider.updatedAt).toLocaleString()}
                 </p>
                 <div className="flex justify-between">
                   <button
-                    onClick={() => startEdit(provider)}
+                    onClick={() => startEdit(slider)}
                     className="bg-gradient-to-r from-yellow-600 to-yellow-700 hover:from-yellow-500 hover:to-yellow-600 text-white py-2 px-4 rounded-lg flex items-center gap-2 transition-all duration-300 shadow-md cursor-pointer"
                   >
                     <FaEdit /> Edit
                   </button>
                   <button
-                    onClick={() => confirmDelete(provider._id)}
+                    onClick={() => confirmDelete(slider._id)}
                     className="bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white py-2 px-4 rounded-lg flex items-center gap-2 transition-all duration-300 shadow-md cursor-pointer"
                   >
                     <FaTrash /> Delete
@@ -163,7 +163,7 @@ const ProviderController = () => {
             </div>
           ))
         ) : (
-          <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center text-orange-300">
+          <div className="col-span-full flex flex-col items-center justify-center py-16 px-4 text-center">
             <div className="w-24 h-24 rounded-full bg-red-900/30 flex items-center justify-center mb-6">
               <svg
                 className="w-12 h-12 text-orange-400"
@@ -181,11 +181,11 @@ const ProviderController = () => {
               </svg>
             </div>
             <h3 className="text-xl font-semibold text-orange-200 mb-2">
-              No providers found
+              No sliders found
             </h3>
             <p className="text-orange-300/80 max-w-md">
-              You haven't added any providers yet. Click the "Add Provider"
-              button above to get started.
+              You haven't added any sliders yet. Click the "Add Slider" button
+              above to get started.
             </p>
           </div>
         )}
@@ -211,7 +211,7 @@ const ProviderController = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-orange-200">
-                  Add New Provider
+                  Add New Slider
                 </h2>
                 <button
                   onClick={() => setAddModalOpen(false)}
@@ -246,7 +246,7 @@ const ProviderController = () => {
                   type="submit"
                   className="w-full bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 text-white font-medium py-3 rounded-xl transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
                 >
-                  Add Provider
+                  Add Slider
                 </button>
               </form>
             </motion.div>
@@ -274,7 +274,7 @@ const ProviderController = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <h2 className="text-xl font-bold text-orange-200">
-                  Edit Provider
+                  Edit Slider
                 </h2>
                 <button
                   onClick={() => setEditModalOpen(false)}
@@ -309,7 +309,7 @@ const ProviderController = () => {
                   type="submit"
                   className="w-full bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 text-white font-medium py-3 rounded-xl transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
                 >
-                  Update Provider
+                  Update Slider
                 </button>
               </form>
             </motion.div>
@@ -358,4 +358,4 @@ const ProviderController = () => {
   );
 };
 
-export default ProviderController;
+export default Slider2Controller;

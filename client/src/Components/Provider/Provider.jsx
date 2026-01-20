@@ -1,47 +1,52 @@
-// src/components/Provider.jsx
 import React from "react";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation, Autoplay } from "swiper/modules";
 import { motion } from "framer-motion";
-import { FaChevronLeft, FaChevronRight } from "react-icons/fa";
-import { FaHandshake } from "react-icons/fa";
-
+import { FaChevronLeft, FaChevronRight, FaHandshake } from "react-icons/fa";
 import "swiper/css";
 import "swiper/css/navigation";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
+import { useLanguage } from "../../context/LanguageProvider";
 
-const providers = [
-  {
-    id: 1,
-    img: "https://i.ibb.co.com/5WqJdHGp/detailed-esports-gaming-logo-template-1029473-588861-ezgif-com-avif-to-jpg-converter.jpg", // SPRIBE
-  },
-  {
-    id: 2,
-    img: "https://i.ibb.co.com/1fbqT3T8/logo-design-technology-company-vector-illustration-1253202-6803-ezgif-com-avif-to-jpg-converter.jpg", // Evolution
-  },
-  {
-    id: 3,
-    img: "https://i.ibb.co.com/5WqJdHGp/detailed-esports-gaming-logo-template-1029473-588861-ezgif-com-avif-to-jpg-converter.jpg",
-  },
-  {
-    id: 4,
-    img: "https://i.ibb.co.com/0p2dyjyH/cyberpunk-assassins-neon-visage-862264-8569-ezgif-com-avif-to-jpg-converter.jpg", // PRAGMATIC
-  },
-  {
-    id: 5,
-    img: "https://i.ibb.co.com/ks9qBjBc/logo-design-technology-company-vector-illustration-1253202-4950-ezgif-com-avif-to-jpg-converter.jpg", // PLAY'N GO
-  },
-];
+
+
+const fetchProviders = async () => {
+  const { data } = await axios.get(
+    `${import.meta.env.VITE_API_URL}/api/providers`,
+  );
+  return data;
+};
 
 const Provider = () => {
+  const { isBangla } = useLanguage(); // LanguageContext থেকে ভাষা নেয়া
+
+  const { data: providers = [], isLoading } = useQuery({
+    queryKey: ["providers"],
+    queryFn: fetchProviders,
+  });
+
+  // ভাষা অনুযায়ী হেডার টেক্সট
+  const headerText = isBangla ? "পার্টনার প্রোভাইডার" : "Partner Providers";
+
+  // Optional: Show skeleton or placeholder while loading
+  if (isLoading) {
+    return (
+      <div className="w-full py-6 px-4 rounded-lg animate-pulse">
+        <div className="h-12 bg-gray-800 rounded mb-4" />
+        <div className="h-12 bg-gray-800 rounded" />
+      </div>
+    );
+  }
+
   return (
     <div className="w-full py-6 px-4 rounded-lg">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <h2 className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-600 text-white text-lg font-bold px-4 py-2 rounded">
           <FaHandshake color="white" size={24} />
-          পার্টনার প্রোভাইডার
+          {headerText}
         </h2>
-
         {/* Custom Navigation */}
         <div className="flex gap-2">
           <button className="provider-prev w-8 h-8 flex items-center justify-center bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-full hover:bg-red-600 transition cursor-pointer">
@@ -74,17 +79,16 @@ const Provider = () => {
         }}
       >
         {providers.map((provider) => (
-          <SwiperSlide key={provider.id}>
+          <SwiperSlide key={provider._id}>
             <motion.div
               whileHover={{ scale: 1.03 }}
               transition={{ duration: 0.3 }}
-              className="h-12 rounded-lg flex items-center justify-center
-              shadow-md cursor-pointer overflow-hidden border-2 border-green-500/30"
+              className="h-12 rounded-lg flex items-center justify-center shadow-md cursor-pointer overflow-hidden border-2 border-green-500/30"
             >
               <img
-                src={provider.img}
+                src={`${import.meta.env.VITE_API_URL}${provider.imageUrl}`}
                 alt="provider"
-                className="w-full h-full object-cover "
+                className="w-full h-full object-cover"
               />
             </motion.div>
           </SwiperSlide>

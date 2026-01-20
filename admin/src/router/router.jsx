@@ -11,12 +11,15 @@ import AddGame from "../pages/AddGame/AddGame";
 import Withdraw from "../pages/Withdraw/Withdraw";
 import Deposit from "../pages/Deposit/Deposit";
 import NavbarController from "../pages/NavbarController/NavbarController";
-import BannerController from "../pages/BannerController/BannerController";
 import NoticeController from "../pages/NoticeController/NoticeController";
 import ProviderController from "../pages/ProviderController/ProviderController";
 import PaymentMethodController from "../pages/PaymentMethodController/PaymentMethodController";
 import BottomNavbarController from "../pages/BottomNavbarController/BottomNavbarController";
 import FaviconAndTitleController from "../pages/FaviconAndTitleController/FaviconAndTitleController";
+import SliderController from "../pages/SliderController/SliderController";
+import Slider2Controller from "../pages/Slider2Controller/Slider2Controller";
+import FooterController from "../pages/FooterController/FooterController";
+import FloatingSocialController from "../pages/FloatingSocialController/FloadtingSocialController";
 
 export const routes = createBrowserRouter([
   {
@@ -93,10 +96,18 @@ export const routes = createBrowserRouter([
         ),
       },
       {
-        path: "controller/banner",
+        path: "controller/slider",
         element: (
           <PrivateRoute>
-            <BannerController />
+            <SliderController />
+          </PrivateRoute>
+        ),
+      },
+       {
+        path: "controller/slider2",
+        element: (
+          <PrivateRoute>
+            <Slider2Controller />
           </PrivateRoute>
         ),
       },
@@ -125,6 +136,14 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "controller/social",
+        element: (
+          <PrivateRoute>
+            <FloatingSocialController />
+          </PrivateRoute>
+        ),
+      },
+      {
         path: "controller/bottom-navbar",
         element: (
           <PrivateRoute>
@@ -137,6 +156,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute>
             <FaviconAndTitleController />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "controller/footer",
+        element: (
+          <PrivateRoute>
+            <FooterController />
           </PrivateRoute>
         ),
       },

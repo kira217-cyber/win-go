@@ -39,15 +39,15 @@ const BottomNavbar = () => {
       className="sticky bottom-0 z-50 "
     >
       {/* Padding for content above bottom bar */}
-      <div className="h-6" />
+      <div className="h-0" />
 
       {/* Main Bottom Bar */}
-      <div className="bg-gradient-to-r from-orange-500 via-red-600 to-red-900  shadow-2xl shadow-red-900/50 py-[0.5] flex justify-around items-center backdrop-blur-md border border-red-700/30">
+      <div className="bg-gradient-to-r from-orange-500 via-red-600 to-red-900 shadow-2xl shadow-red-900/50 flex justify-around items-center backdrop-blur-md border border-red-700/30">
         {/* Home */}
         <NavLink
           to="/"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 p-1  text-xs md:text-sm font-medium transition-all duration-300 cursor-pointer ${
+            `flex flex-col items-center gap-1 p-1 text-xs md:text-sm font-medium transition-all duration-300 cursor-pointer ${
               isActive ? activeClass : normalClass
             }`
           }
@@ -60,7 +60,7 @@ const BottomNavbar = () => {
         <NavLink
           to="/promotion"
           className={({ isActive }) =>
-            `flex flex-col items-center gap-1 p-1  text-xs md:text-sm font-medium transition-all duration-300 cursor-pointer ${
+            `flex flex-col items-center gap-1 p-1 text-xs md:text-sm font-medium transition-all duration-300 cursor-pointer ${
               isActive ? activeClass : normalClass
             }`
           }
