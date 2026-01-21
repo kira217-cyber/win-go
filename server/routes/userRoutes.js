@@ -136,4 +136,69 @@ router.post("/login", async (req, res) => {
   }
 });
 
+// GET single user by ID (for profile)
+router.get('/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Remove sensitive fields before sending
+    const safeUser = user.toObject();
+    delete safeUser.password;
+    delete safeUser.createdUsers;
+    delete safeUser.referredBy;
+
+    res.status(200).json(safeUser);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// UPDATE user profile by ID
+router.put('/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { firstName, lastName, phone, password } = req.body;
+
+    const user = await User.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Update fields only if they are sent in request
+    if (firstName) user.firstName = firstName.trim();
+    if (lastName) user.lastName = lastName.trim();
+
+    if (phone && phone !== user.phone) {
+      // Check if phone is already used by another user
+      const existing = await User.findOne({ phone });
+      if (existing && existing._id.toString() !== id) {
+        return res.status(400).json({ message: 'Phone number already in use' });
+      }
+      user.phone = phone.trim();
+    }
+
+    if (password && password.trim() !== '') {
+      const salt = await bcrypt.genSalt(10);
+      user.password = await bcrypt.hash(password, salt);
+    }
+
+    await user.save();
+
+    // Return updated user without sensitive fields
+    const updatedUser = await User.findById(id);
+    const safeUpdated = updatedUser.toObject();
+    delete safeUpdated.password;
+    delete safeUpdated.createdUsers;
+    delete safeUpdated.referredBy;
+
+    res.status(200).json(safeUpdated);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+});
+
 export default router;

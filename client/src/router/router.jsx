@@ -9,6 +9,7 @@ import RootLayout from "../RootLayout/RootLayout";
 import Home from "../pages/Home/Home";
 import Profile from "../pages/Profile/Profile";
 import Promotion from "../pages/Promotion/Promotion";
+import PromotionDetails from "../pages/PromotionDetails/PromotionDetails";
 
 export const routes = createBrowserRouter([
   {
@@ -31,7 +32,7 @@ export const routes = createBrowserRouter([
       {
         path: "profile",
         element: (
-          <PrivateRoute>  
+          <PrivateRoute>
             <Profile />
           </PrivateRoute>
         ),
@@ -39,8 +40,18 @@ export const routes = createBrowserRouter([
       {
         path: "promotion",
         element: (
-          <PrivateRoute>  
+          <PrivateRoute>
+            {" "}
             <Promotion />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "/promotion/:id",
+        element: (
+          <PrivateRoute>
+            {" "}
+            <PromotionDetails />{" "}
           </PrivateRoute>
         ),
       },

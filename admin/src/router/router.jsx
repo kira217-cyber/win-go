@@ -20,6 +20,9 @@ import SliderController from "../pages/SliderController/SliderController";
 import Slider2Controller from "../pages/Slider2Controller/Slider2Controller";
 import FooterController from "../pages/FooterController/FooterController";
 import FloatingSocialController from "../pages/FloatingSocialController/FloadtingSocialController";
+import ThemeController from "../pages/ThemeController/ThemeController";
+import LogoController from "../pages/LogoController/LogoController";
+import AddPromotion from "../pages/AddPromotion/AddPromotion";
 
 export const routes = createBrowserRouter([
   {
@@ -72,6 +75,14 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "add-promotion",
+        element: (
+          <PrivateRoute>
+            <AddPromotion />
+          </PrivateRoute>
+        ),
+      },
+      {
         path: "withdraw",
         element: (
           <PrivateRoute>
@@ -84,6 +95,22 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Deposit />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "controller/theme",
+        element: (
+          <PrivateRoute>
+            <ThemeController />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "controller/logos",
+        element: (
+          <PrivateRoute>
+            <LogoController />
           </PrivateRoute>
         ),
       },

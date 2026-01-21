@@ -1,5 +1,5 @@
 // pages/Register.jsx
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
@@ -19,6 +19,24 @@ const Register = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [logo, setLogo] = useState(null);
+
+  useEffect(() => {
+    const fetchLogo = async () => {
+      try {
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/logos`,
+        );
+        setLogo(res.data.registerImage);
+      } catch (err) {
+        console.error("Failed to load logo settings:", err);
+      } finally {
+        setSettingsLoading(false);
+      }
+    };
+
+    fetchLogo();
+  }, []);
 
   // ভাষা অনুযায়ী সমস্ত টেক্সট
   const texts = {
@@ -74,10 +92,10 @@ const Register = () => {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-black/40 backdrop-blur-sm border border-red-800/40 rounded-2xl shadow-2xl p-8 md:p-10">
         <div className="text-center mb-8">
-          <div className="inline-block w-16 h-16 rounded-xl bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center shadow-lg shadow-red-900/60 mb-4">
-            <img src="https://i.ibb.co.com/MD3yc4rw/Betway-Lucky-Lenny-betgames-500x500.webp" alt="" />
+          <div className="inline-block w-22 h-22 rounded-xl flex items-center justify-center shadow-lg shadow-red-900/60 mb-4">
+            <img src={`${import.meta.env.VITE_API_URL}/${logo}`} alt="Logo" />
           </div>
-          
+
           <p className="text-orange-300/80 mt-2">{texts.title}</p>
         </div>
 

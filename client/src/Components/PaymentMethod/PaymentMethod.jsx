@@ -8,9 +8,7 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useLanguage } from "../../context/LanguageProvider";
 
-
-
-
+/* ================= FETCH FUNCTIONS ================= */
 const fetchPaymentMethods = async () => {
   const { data } = await axios.get(
     `${import.meta.env.VITE_API_URL}/api/payment-methods`,
@@ -18,8 +16,24 @@ const fetchPaymentMethods = async () => {
   return data;
 };
 
+const fetchTheme = async () => {
+  try {
+    const { data } = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/theme-settings`,
+    );
+    return data;
+  } catch (error) {
+    return {
+      gradientFrom: "#f97316",
+      gradientTo: "#dc2626",
+      textColor: "#ffffff",
+    };
+  }
+};
+
+/* ================= COMPONENT ================= */
 const PaymentMethod = () => {
-  const { isBangla } = useLanguage(); // LanguageContext থেকে ভাষা নেয়া
+  const { isBangla } = useLanguage();
 
   const { data: methods = [], isLoading } = useQuery({
     queryKey: ["payment-methods"],
@@ -27,10 +41,19 @@ const PaymentMethod = () => {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // ভাষা অনুযায়ী টেক্সট
-  const headerText = isBangla ? "লেনদেন ফাইন্যান্স" : "Payment Methods"; // অথবা "Transaction Finance" / "Deposit & Withdraw"
+  const { data: theme } = useQuery({
+    queryKey: ["theme-settings"],
+    queryFn: fetchTheme,
+    staleTime: 10 * 60 * 1000, // 10 minutes
+  });
 
+  const headerText = isBangla ? "লেনদেন ফাইন্যান্স" : "Payment Methods";
   const autoPaymentText = isBangla ? "অটো পেমেন্ট O-Pay" : "Auto Payment O-Pay";
+
+  const gradientStyle = {
+    background: `linear-gradient(to right, ${theme?.gradientFrom},${theme?.gradientVia}, ${theme?.gradientTo})`,
+    color: theme?.textColor || "#fff",
+  };
 
   if (isLoading) {
     return (
@@ -54,7 +77,10 @@ const PaymentMethod = () => {
     <div className="w-full py-6 px-4 rounded-lg">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-3">
-        <h2 className="inline-block bg-gradient-to-r from-orange-500 to-red-600 text-white text-md font-bold px-2 py-1 rounded">
+        <h2
+          style={gradientStyle}
+          className="inline-block text-md font-bold px-2 py-1 rounded"
+        >
           {headerText}
         </h2>
         <div className="flex gap-2 items-center">

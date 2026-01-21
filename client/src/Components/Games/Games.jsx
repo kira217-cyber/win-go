@@ -1,11 +1,33 @@
 import React, { useState } from "react";
 import { IoGameController } from "react-icons/io5";
 import { useLanguage } from "../../context/LanguageProvider";
+import { useQuery } from "@tanstack/react-query";
+import axios from "axios";
 
+const fetchTheme = async () => {
+  try {
+    const { data } = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/theme-settings`,
+    );
+    return data;
+  } catch (error) {
+    return {
+      gradientFrom: "#f97316", // orange-500
+      gradientTo: "#dc2626", // red-600
+      textColor: "#ffffff",
+    };
+  }
+};
 
 const Games = () => {
-  const { isBangla } = useLanguage(); // LanguageContext থেকে ভাষা নেয়া
+  const { isBangla } = useLanguage();
   const [showMore, setShowMore] = useState(false);
+
+  const { data: theme } = useQuery({
+    queryKey: ["theme-settings"],
+    queryFn: fetchTheme,
+    staleTime: 10 * 60 * 1000,
+  });
 
   const games = [
     {
@@ -55,29 +77,22 @@ const Games = () => {
     },
   ];
 
-  // ভাষা অনুযায়ী টেক্সট
   const sectionTitle = isBangla ? "সেরা গেমস খেলুন" : "Play the Best Games";
-
   const buttonText = isBangla ? "আরও দেখুন" : "See More";
+
+  const gradientStyle = {
+    background: `linear-gradient(to right, ${theme?.gradientFrom}, ${theme?.gradientVia}, ${theme?.gradientTo})`,
+    color: theme?.textColor || "#fff",
+  };
 
   return (
     <div className="w-full px-3 py-2">
-      {/* ⭐ Shine Effect */}
+      {/* Shine Effect */}
       <style>{`
-        .auto-shine {
-          position: relative;
-          overflow: hidden;
-          border-radius: 8px;
-        }
+        .auto-shine { position: relative; overflow: hidden; border-radius: 12px; }
         .shine-layer {
-          position: absolute;
-          inset: 0;
-          background: linear-gradient(
-            120deg,
-            transparent 30%,
-            rgba(255,255,255,0.9) 50%,
-            transparent 70%
-          );
+          position: absolute; inset: 0;
+          background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.9) 50%, transparent 70%);
           transform: translateX(-150%);
           pointer-events: none;
         }
@@ -92,8 +107,12 @@ const Games = () => {
 
       {/* SECTION TITLE */}
       <div className="mb-3">
-        <h2 className="flex items-center gap-2 w-2/3 md:w-1/2 bg-gradient-to-r from-orange-500 to-red-600 text-white text-md font-bold px-2 py-2 rounded">
-          <IoGameController color="white" size={28} /> {sectionTitle}
+        <h2
+          style={gradientStyle}
+          className="flex items-center gap-2 w-2/3 md:w-1/2 text-md font-bold px-2 py-2 rounded"
+        >
+          <IoGameController size={28} />
+          {sectionTitle}
         </h2>
       </div>
 
@@ -102,17 +121,15 @@ const Games = () => {
         {games.slice(0, showMore ? games.length : 6).map((game) => (
           <div
             key={game.id}
-            className="relative auto-shine shine-animate rounded-xl overflow-hidden border-2 border-green-500 shadow-lg cursor-pointer"
+            className="relative auto-shine shine-animate overflow-hidden border-2 border-green-500 shadow-lg cursor-pointer"
           >
             <img
               src={game.img}
               alt={game.title}
-              className="w-full h-42 md:h-52 object-cover"
+              className="w-full h-40 md:h-52 object-cover"
             />
             <div className="shine-layer"></div>
-
-            {/* OVERLAY - গেম টাইটেল সবসময় English */}
-            <div className="absolute inset-0 flex items-end justify-center">
+            <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/60 to-transparent">
               <span className="text-white text-sm font-bold pb-2">
                 {game.title}
               </span>
@@ -126,7 +143,8 @@ const Games = () => {
         <div className="flex justify-center mt-4">
           <button
             onClick={() => setShowMore(true)}
-            className="bg-gradient-to-r cursor-pointer from-orange-500 to-red-600 text-white px-6 py-2 rounded-full font-semibold shadow-lg active:scale-95"
+            style={gradientStyle}
+            className="px-6 py-2 cursor-pointer rounded-full font-semibold shadow-lg active:scale-95 transition-transform"
           >
             {buttonText}
           </button>

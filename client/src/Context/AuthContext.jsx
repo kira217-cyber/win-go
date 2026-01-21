@@ -7,6 +7,8 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true); // important for protected routes
+  console.log(user?.id)
+  const userId = user?.id
 
   // Load user & token from localStorage when app starts
   useEffect(() => {
@@ -52,6 +54,7 @@ const AuthProvider = ({ children }) => {
   // Context value – everything components need
   const authInfo = {
     user,
+    userId,
     token, // useful for API calls
     loading, // show spinner while checking auth
     isAuthenticated: !!user && !!token,

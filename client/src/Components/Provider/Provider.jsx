@@ -9,27 +9,55 @@ import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useLanguage } from "../../context/LanguageProvider";
 
-
+/* ================= FETCH FUNCTIONS ================= */
 
 const fetchProviders = async () => {
   const { data } = await axios.get(
-    `${import.meta.env.VITE_API_URL}/api/providers`,
+    `${import.meta.env.VITE_API_URL}/api/providers`
   );
   return data;
 };
 
+const fetchTheme = async () => {
+  try {
+    const { data } = await axios.get(
+      `${import.meta.env.VITE_API_URL}/api/theme-settings`
+    );
+    return data;
+  } catch (error) {
+    return {
+      gradientFrom: "#f97316",
+      gradientTo: "#dc2626",
+      textColor: "#ffffff",
+    };
+  }
+};
+
+/* ================= COMPONENT ================= */
+
 const Provider = () => {
-  const { isBangla } = useLanguage(); // LanguageContext থেকে ভাষা নেয়া
+  const { isBangla } = useLanguage();
 
   const { data: providers = [], isLoading } = useQuery({
     queryKey: ["providers"],
     queryFn: fetchProviders,
   });
 
-  // ভাষা অনুযায়ী হেডার টেক্সট
+  const { data: theme } = useQuery({
+    queryKey: ["theme-settings"],
+    queryFn: fetchTheme,
+    staleTime: 10 * 60 * 1000,
+  });
+
   const headerText = isBangla ? "পার্টনার প্রোভাইডার" : "Partner Providers";
 
-  // Optional: Show skeleton or placeholder while loading
+  const gradientStyle = {
+    background: `linear-gradient(to right, ${theme?.gradientFrom},${theme?.gradientVia}, ${theme?.gradientTo})`,
+    color: theme?.textColor || "#fff",
+  };
+
+  /* ================= LOADING ================= */
+
   if (isLoading) {
     return (
       <div className="w-full py-6 px-4 rounded-lg animate-pulse">
@@ -39,20 +67,32 @@ const Provider = () => {
     );
   }
 
+  /* ================= UI ================= */
+
   return (
     <div className="w-full py-6 px-4 rounded-lg">
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h2 className="flex items-center gap-2 bg-gradient-to-r from-orange-500 to-red-600 text-white text-lg font-bold px-4 py-2 rounded">
-          <FaHandshake color="white" size={24} />
+        <h2
+          style={gradientStyle}
+          className="flex items-center gap-2 text-lg font-bold px-4 py-2 rounded"
+        >
+          <FaHandshake size={24} />
           {headerText}
         </h2>
+
         {/* Custom Navigation */}
         <div className="flex gap-2">
-          <button className="provider-prev w-8 h-8 flex items-center justify-center bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-full hover:bg-red-600 transition cursor-pointer">
+          <button
+            style={gradientStyle}
+            className="provider-prev w-8 h-8 flex items-center justify-center rounded-full transition cursor-pointer"
+          >
             <FaChevronLeft />
           </button>
-          <button className="provider-next w-8 h-8 flex items-center justify-center bg-gradient-to-r from-orange-500 to-red-600 text-white rounded-full hover:bg-red-600 transition cursor-pointer">
+          <button
+            style={gradientStyle}
+            className="provider-next w-8 h-8 flex items-center justify-center rounded-full transition cursor-pointer"
+          >
             <FaChevronRight />
           </button>
         </div>

@@ -54,18 +54,21 @@ const Sidebar = () => {
       text: "Add Game Provider",
     },
     { to: "/add-game", icon: <IoAppsSharp />, text: "Add Game" },
+    { to: "/add-promotion", icon: <IoAppsSharp />, text: "Promotion Game" },
     { to: "/deposit", icon: <FaHeart />, text: "Deposit" },
     { to: "/withdraw", icon: <FaWallet />, text: "Withdraw" },
   ];
 
   const promotionSubItems = [
+    { to: "/controller/logos", text: "Logos Controller" },
+    { to: "/controller/theme", text: "Theme Controller" },
     { to: "/controller/navbar", text: "Navbar Controller" },
     { to: "/controller/slider", text: "Slider Controller" },
     { to: "/controller/slider2", text: "Slider 2 Controller" },
     { to: "/controller/notice", text: "Notice Controller" },
     { to: "/controller/favivon-icon-title", text: "Favicon And Title" },
     { to: "/controller/provider", text: "Provider Controller" },
-    { to: "/controller/payment-method", text: "Payment Method Controller" },
+    { to: "/controller/payment-method", text: "Payment Method Image" },
     { to: "/controller/social", text: "Social Link Controller" },
     { to: "/controller/bottom-navbar", text: "Bottom Navbar Controller" },
     { to: "/controller/footer", text: "Footer Controller" },

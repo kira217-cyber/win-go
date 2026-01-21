@@ -3,6 +3,7 @@ import { Outlet } from "react-router";
 import Navbar from "../Components/Navbar/Navbar";
 import BottomNavbar from "../Components/BottomNavbar/BottomNavbar";
 import FloatingSocial from "../Components/FloatingSocial/FloatingSocial";
+import PromotionModal from "../Components/PromotionModal/PromotionModal";
 
 const RootLayout = () => {
   return (
@@ -27,6 +28,7 @@ const RootLayout = () => {
           }}
         >
           <Outlet />
+          <PromotionModal />
           <BottomNavbar />
           <FloatingSocial />
         </div>
