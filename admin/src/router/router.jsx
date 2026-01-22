@@ -8,8 +8,8 @@ import Profile from "../pages/Profile/Profile";
 import AllUser from "../pages/AllUser/AllUser";
 import AddGameProvider from "../pages/AddGameProvider/AddGameProvider";
 import AddGame from "../pages/AddGame/AddGame";
-import Withdraw from "../pages/Withdraw/Withdraw";
-import Deposit from "../pages/Deposit/Deposit";
+import Withdraw from "../pages/AddWithdraw/AddWithdraw";
+import Deposit from "../pages/AddDeposit/AddDeposit";
 import NavbarController from "../pages/NavbarController/NavbarController";
 import NoticeController from "../pages/NoticeController/NoticeController";
 import ProviderController from "../pages/ProviderController/ProviderController";
@@ -23,6 +23,11 @@ import FloatingSocialController from "../pages/FloatingSocialController/Floadtin
 import ThemeController from "../pages/ThemeController/ThemeController";
 import LogoController from "../pages/LogoController/LogoController";
 import AddPromotion from "../pages/AddPromotion/AddPromotion";
+import UserDetails from "../pages/UserDetails/UserDetails";
+import AddDeposit from "../pages/AddDeposit/AddDeposit";
+import AddWithdraw from "../pages/AddWithdraw/AddWithdraw";
+import DepositRequest from "../pages/DepositRequest/DepositRequest";
+import WithdrawRequest from "../pages/WithdrawRequest/WithdrawRequest";
 
 export const routes = createBrowserRouter([
   {
@@ -59,6 +64,14 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "/user-details/:id",
+        element: (
+          <PrivateRoute>
+            <UserDetails />
+          </PrivateRoute>
+        ),
+      },
+      {
         path: "add-game-provider",
         element: (
           <PrivateRoute>
@@ -83,18 +96,34 @@ export const routes = createBrowserRouter([
         ),
       },
       {
-        path: "withdraw",
+        path: "add-withdraw",
         element: (
           <PrivateRoute>
-            <Withdraw />
+            <AddWithdraw />
           </PrivateRoute>
         ),
       },
       {
-        path: "deposit",
+        path: "add-deposit",
         element: (
           <PrivateRoute>
-            <Deposit />
+            <AddDeposit />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "deposit-request",
+        element: (
+          <PrivateRoute>
+            <DepositRequest />
+          </PrivateRoute>
+        ),
+      },
+       {
+        path: "withdraw-request",
+        element: (
+          <PrivateRoute>
+            <WithdrawRequest />
           </PrivateRoute>
         ),
       },
@@ -130,7 +159,7 @@ export const routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-       {
+      {
         path: "controller/slider2",
         element: (
           <PrivateRoute>

@@ -1,4 +1,5 @@
 // routes/userRoutes.js
+import mongoose from "mongoose";
 import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
@@ -136,6 +137,73 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.get("/me", async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId) {
+      return res.status(400).json({
+        success: false,
+        message: "userId is required in query parameter (?userId=...)",
+      });
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid userId format",
+      });
+    }
+
+    const user = await User.findById(userId).select(
+      "firstName lastName phone balance turnoverTarget turnoverCompleted status role"
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: "User not found",
+      });
+    }
+
+    // Calculate remaining turnover (server-side)
+    const remainingTurnover = Math.max(0, user.turnoverTarget - user.turnoverCompleted);
+
+    res.json({
+      success: true,
+      data: {
+        _id: user._id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        phone: user.phone,
+        balance: user.balance || 0,
+        turnoverTarget: user.turnoverTarget || 0,
+        turnoverCompleted: user.turnoverCompleted || 0,
+        remainingTurnover,
+        status: user.status,
+        role: user.role,
+      },
+    });
+  } catch (err) {
+    console.error("GET /users/me error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching user info",
+    });
+  }
+});
+
+
+// GET /api/users
+router.get('/admin', async (req, res) => {
+  try {
+    const users = await User.find({}).select('-password -__v');
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
 // GET single user by ID (for profile)
 router.get('/:id', async (req, res) => {
   try {
@@ -200,5 +268,82 @@ router.put('/:id', async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 });
+
+// GET /api/user/admin/:id
+router.get('/admin/:id', async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password -__v');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PUT /api/user/admin/:id
+router.put('/admin/:id', async (req, res) => {
+  try {
+    const { firstName, lastName, phone, balance, status, password } = req.body;
+
+    const updateData = {
+      firstName,
+      lastName,
+      phone,
+      balance: Number(balance),
+      status,
+    };
+
+    if (password && password.trim().length >= 6) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.password = await bcrypt.hash(password.trim(), salt);
+    }
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.params.id,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password -__v');
+
+    if (!updatedUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.status(200).json(updatedUser);
+  } catch (err) {
+    if (err.code === 11000) {
+      return res.status(400).json({ message: 'Phone number already exists' });
+    }
+    console.error(err);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// PATCH /api/users/:id/status
+router.patch('/admin/:id/status', async (req, res) => {
+  const { status } = req.body;
+
+  if (!['active', 'inactive', 'blocked'].includes(status)) {
+    return res.status(400).json({ message: 'Invalid status value' });
+  }
+
+  try {
+    const user = await User.findByIdAndUpdate(
+      req.params.id,
+      { status },
+      { new: true, runValidators: true }
+    ).select('-password -__v');
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+
 
 export default router;

@@ -141,8 +141,8 @@ const Profile = () => {
   }
 
   return (
-    <div className="min-h-screen  text-gray-100 py-10 px-4 sm:px-8 lg:px-16">
-      <div className="max-w-4xl mx-auto">
+    <div className="min-h-screen text-gray-100 py-10 px-4 sm:px-8 lg:px-16">
+      <div className="max-w-4xl bg-gray-50/20 mx-auto rounded-xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}

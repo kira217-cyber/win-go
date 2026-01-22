@@ -116,7 +116,7 @@ const PromotionModal = () => {
                 onSwiper={(swiper) => {
                   swiperRef.current = swiper;
                 }}
-                className="rounded-xl overflow-hidden mt-8"
+                className="rounded-sm overflow-hidden mt-8"
               >
                 {promotions.map((promo) => (
                   <SwiperSlide key={promo._id}>
@@ -124,7 +124,7 @@ const PromotionModal = () => {
                       <img
                         src={`${import.meta.env.VITE_API_URL}/${promo.image}`} // assuming image is stored as relative path
                         alt={promo.titleEn || promo.titleBn || "Promotion"}
-                        className="w-full h-[160px] md:h-[220px] object-cover rounded-lg cursor-pointer"
+                        className="w-full h-[160px] md:h-[220px] object-cover  cursor-pointer"
                       />
                     </Link>
                   </SwiperSlide>

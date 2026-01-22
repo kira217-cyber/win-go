@@ -55,8 +55,10 @@ const Sidebar = () => {
     },
     { to: "/add-game", icon: <IoAppsSharp />, text: "Add Game" },
     { to: "/add-promotion", icon: <IoAppsSharp />, text: "Promotion Game" },
-    { to: "/deposit", icon: <FaHeart />, text: "Deposit" },
-    { to: "/withdraw", icon: <FaWallet />, text: "Withdraw" },
+    { to: "/add-deposit", icon: <FaHeart />, text: "Add Deposit" },
+    { to: "/deposit-request", icon: <FaHeart />, text: "Deposit Request" },
+    { to: "/withdraw-request", icon: <FaHeart />, text: "Withdraw Request" },
+    { to: "/add-withdraw", icon: <FaWallet />, text: "Add Withdraw" },
   ];
 
   const promotionSubItems = [

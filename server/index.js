@@ -16,7 +16,12 @@ import bottomNavbarRoutes from "./routes/bottomNavbarRoutes.js";
 import navbarRoutes from "./routes/navbarRoutes.js";
 import themeRoutes from "./routes/themeRoutes.js";
 import logoRoutes from "./routes/logoRoutes.js";
-import promotionRoutes from "./routes/promotionRoutes.js"
+import promotionRoutes from "./routes/promotionRoutes.js";
+import callBackRoutes from "./routes/callBackRoutes.js";
+import depositMethodRoutes from "./routes/depositMethodRoutes.js";
+import withdrawMethodRoutes from "./routes/withdrawMethodRoutes.js";
+import depositRequestRoutes from "./routes/depositRequestRoutes.js";
+import withdrawRequestRoutes from "./routes/withdrawRequestRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -43,6 +48,11 @@ app.use("/api/bottom-navbar", bottomNavbarRoutes);
 app.use("/api/theme-settings", themeRoutes);
 app.use("/api", logoRoutes);
 app.use("/api", promotionRoutes);
+app.use("/api/call-back", callBackRoutes);
+app.use("/api/add-deposit", depositMethodRoutes);
+app.use("/api/add-withdraw", withdrawMethodRoutes);
+app.use("/api/deposit-requests", depositRequestRoutes);
+app.use("/api/withdraw-requests", withdrawRequestRoutes);
 
 app.get("/", (req, res) => {
   res.send("Win-Go API is running 🚀");

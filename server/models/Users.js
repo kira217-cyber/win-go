@@ -1,68 +1,113 @@
 // models/User.js
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
+import gameHistorySchema from "./GameHistory.js";
 
 const userSchema = new mongoose.Schema(
   {
     firstName: {
       type: String,
-      required: true,
+      required: [true, "First name is required"],
       trim: true,
+      minlength: [2, "First name must be at least 2 characters"],
     },
+
     lastName: {
       type: String,
-      required: true,
+      required: [true, "Last name is required"],
       trim: true,
+      minlength: [2, "Last name must be at least 2 characters"],
     },
+
     phone: {
       type: String,
-      required: true,
+      required: [true, "Phone number is required"],
       unique: true,
       trim: true,
+      match: [
+        /^01[3-9]\d{8}$/,
+        "Please enter a valid Bangladeshi phone number",
+      ],
     },
+
     password: {
       type: String,
-      required: true,
+      required: [true, "Password is required"],
+      minlength: [6, "Password must be at least 6 characters"],
     },
+
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ["user", "admin"],
+      default: "user",
       required: true,
     },
+
     referCode: {
       type: String,
       unique: true,
       sparse: true,
+      trim: true,
     },
+
     referredBy: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       default: null,
     },
+
     status: {
       type: String,
-      enum: ['active', 'inactive', 'blocked'],
-      default: 'active',
+      enum: ["active", "inactive", "blocked"],
+      default: "active",
+      required: true,
     },
+
+    // ────────────────────────────────────────────────
+    // Money & Turnover fields (added here)
+    // ────────────────────────────────────────────────
     balance: {
       type: Number,
       default: 0,
+      min: [0, "Balance cannot be negative"],
     },
+
+    turnoverTarget: {
+      type: Number,
+      default: 0,
+      min: [0, "Turnover target cannot be negative"],
+    },
+
+    turnoverCompleted: {
+      type: Number,
+      default: 0,
+      min: [0, "Turnover completed cannot be negative"],
+    },
+
+    // Optional fields (useful for future)
+    lastBonusAdded: {
+      type: Number,
+      default: 0,
+    },
+
+    lastDepositDate: {
+      type: Date,
+    },
+
+    // Existing fields
+    gameHistory: [gameHistorySchema],
+
     createdUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
+        ref: "User",
       },
     ],
   },
   {
-    timestamps: true, // createdAt, updatedAt স্বয়ংক্রিয়ভাবে যোগ হবে
-  }
+    timestamps: true, // createdAt, updatedAt
+  },
 );
 
-// কোনো pre-save hook নেই — পাসওয়ার্ড হ্যাশিং routes-এ হবে
-// compare মেথডও routes-এ হবে, তাই এখানে কিছু রাখা হলো না
-
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 export default User;
