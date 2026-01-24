@@ -1,5 +1,6 @@
 // routes/withdraw-requests.js
 import express from "express";
+import mongoose from 'mongoose';
 import User from "../models/Users.js";
 import WithdrawRequest from "../models/WithdrawRequest.js";
 
@@ -116,6 +117,42 @@ router.get("/", async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+
+router.get("/withdraw-history/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Optional: basic validation for ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const withdrawals = await WithdrawRequest.find({ user: userId })
+      .populate({
+        path: "method",
+        select: "methodName image", // add more fields if needed
+      })
+      .sort({ createdAt: -1 }) // newest first
+      .lean();
+
+    res.json({
+      success: true,
+      count: withdrawals.length,
+      data: withdrawals,
+    });
+  } catch (err) {
+    console.error("Withdraw history error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
   }
 });
 

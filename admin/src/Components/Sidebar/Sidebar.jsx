@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, Outlet } from "react-router"; // ← fixed typo: react-router → react-router-dom
+import { NavLink, Outlet } from "react-router";
 import {
   FaHome,
   FaBell,
@@ -16,6 +16,9 @@ import {
   FaChevronUp,
 } from "react-icons/fa";
 import { BiCategoryAlt } from "react-icons/bi";
+import { FaCodePullRequest } from "react-icons/fa6";
+import { PiHandWithdrawBold } from "react-icons/pi";
+import { PiHandDepositBold } from "react-icons/pi";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { IoAppsSharp } from "react-icons/io5";
 import { GrAnnounce } from "react-icons/gr";
@@ -26,6 +29,8 @@ import useAuth from "../../hook/useAuth";
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
   const [promotionsOpen, setPromotionsOpen] = useState(false);
+  const [depositOpen, setDepositOpen] = useState(false);
+  const [withdrawOpen, setWithdrawOpen] = useState(false);
   const [isDesktop, setIsDesktop] = useState(window.innerWidth >= 768);
 
   const { logout } = useAuth();
@@ -55,10 +60,24 @@ const Sidebar = () => {
     },
     { to: "/add-game", icon: <IoAppsSharp />, text: "Add Game" },
     { to: "/add-promotion", icon: <IoAppsSharp />, text: "Promotion Game" },
-    { to: "/add-deposit", icon: <FaHeart />, text: "Add Deposit" },
-    { to: "/deposit-request", icon: <FaHeart />, text: "Deposit Request" },
-    { to: "/withdraw-request", icon: <FaHeart />, text: "Withdraw Request" },
+  ];
+
+  const depositSubItems = [
+    { to: "/add-deposit", icon: <FaWallet />, text: "Add Deposit" },
+    {
+      to: "/deposit-request",
+      icon: <FaCodePullRequest />,
+      text: "Deposit Request",
+    },
+  ];
+
+  const withdrawSubItems = [
     { to: "/add-withdraw", icon: <FaWallet />, text: "Add Withdraw" },
+    {
+      to: "/withdraw-request",
+      icon: <FaCodePullRequest />,
+      text: "Withdraw Request",
+    },
   ];
 
   const promotionSubItems = [
@@ -85,7 +104,6 @@ const Sidebar = () => {
   };
 
   return (
-    // Root container takes full viewport height & prevents body scroll
     <div className="h-screen w-full flex flex-col overflow-hidden bg-gradient-to-br from-orange-950 via-red-950 to-black text-gray-100">
       {/* ─── Mobile Top Bar ─── */}
       <div className="md:hidden fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-orange-600 via-red-700 to-red-900 px-4 py-3.5 flex items-center justify-between shadow-md">
@@ -126,15 +144,21 @@ const Sidebar = () => {
         >
           <SidebarContent
             menuItems={menuItems}
+            depositSubItems={depositSubItems}
+            withdrawSubItems={withdrawSubItems}
             promotionSubItems={promotionSubItems}
             promotionsOpen={promotionsOpen}
             setPromotionsOpen={setPromotionsOpen}
+            depositOpen={depositOpen}
+            setDepositOpen={setDepositOpen}
+            withdrawOpen={withdrawOpen}
+            setWithdrawOpen={setWithdrawOpen}
             onClose={() => setOpen(false)}
             onLogout={handleLogout}
           />
         </motion.aside>
 
-        {/* ─── Main Content Area ─── (this is the ONLY scrollable part) */}
+        {/* ─── Main Content Area ─── */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Desktop Top Bar */}
           <div className="hidden md:flex items-center justify-between px-6 lg:px-10 py-[25px] border-b border-red-800/50 bg-gradient-to-r from-orange-900/80 via-red-900/70 to-black/80 backdrop-blur-md sticky top-0 z-40 shadow-sm">
@@ -161,7 +185,7 @@ const Sidebar = () => {
             </div>
           </div>
 
-          {/* Scrollable content wrapper */}
+          {/* Scrollable content */}
           <main className="flex-1 overflow-y-auto p-4 md:p-6">
             <div className="h-full">
               <div className="p-5 md:p-6">
@@ -175,12 +199,17 @@ const Sidebar = () => {
   );
 };
 
-// SidebarContent remains almost the same, just ensure nav has overflow-y-auto
 const SidebarContent = ({
   menuItems,
+  depositSubItems,
+  withdrawSubItems,
   promotionSubItems,
   promotionsOpen,
   setPromotionsOpen,
+  depositOpen,
+  setDepositOpen,
+  withdrawOpen,
+  setWithdrawOpen,
   onClose,
   onLogout,
 }) => {
@@ -213,9 +242,8 @@ const SidebarContent = ({
         </button>
       )}
 
-      {/* Navigation - scrollable if many items */}
+      {/* Navigation */}
       <nav className="flex-1 px-3 py-6 overflow-y-auto scrollbar-hide">
-        {/* ... your existing menu items and dropdown ... */}
         {menuItems.map((item) => (
           <NavLink
             key={item.to}
@@ -237,7 +265,91 @@ const SidebarContent = ({
           </NavLink>
         ))}
 
-        {/* Promotions Dropdown */}
+        {/* Deposit Dropdown */}
+        <div className="mt-4">
+          <button
+            onClick={() => setDepositOpen(!depositOpen)}
+            className="w-full flex items-center justify-between px-5 py-3.5 rounded-xl text-orange-100 hover:bg-red-950/60 hover:text-orange-50 transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex items-center gap-4">
+              <span className="text-2xl">
+                <PiHandDepositBold />
+              </span>
+              <span className="font-medium">Deposit</span>
+            </div>
+            {depositOpen ? (
+              <FaChevronUp size={18} />
+            ) : (
+              <FaChevronDown size={18} />
+            )}
+          </button>
+
+          {depositOpen && (
+            <div className="mt-2 pl-14 space-y-1 animate-fadeIn">
+              {depositSubItems.map((sub) => (
+                <NavLink
+                  key={sub.to}
+                  to={sub.to}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-5 py-3 rounded-lg text-sm transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? "bg-orange-800/50 text-orange-50 font-medium shadow-sm shadow-red-950/40"
+                        : "text-orange-200/90 hover:text-orange-100 hover:bg-red-950/50"
+                    }`
+                  }
+                >
+                  <span className="text-xl opacity-80">{sub.icon}</span>
+                  <span>{sub.text}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Withdraw Dropdown */}
+        <div className="mt-2">
+          <button
+            onClick={() => setWithdrawOpen(!withdrawOpen)}
+            className="w-full flex items-center justify-between px-5 py-3.5 rounded-xl text-orange-100 hover:bg-red-950/60 hover:text-orange-50 transition-all duration-200 cursor-pointer"
+          >
+            <div className="flex items-center gap-4">
+              <span className="text-2xl">
+                <PiHandWithdrawBold />
+              </span>
+              <span className="font-medium">Withdraw</span>
+            </div>
+            {withdrawOpen ? (
+              <FaChevronUp size={18} />
+            ) : (
+              <FaChevronDown size={18} />
+            )}
+          </button>
+
+          {withdrawOpen && (
+            <div className="mt-2 pl-14 space-y-1 animate-fadeIn">
+              {withdrawSubItems.map((sub) => (
+                <NavLink
+                  key={sub.to}
+                  to={sub.to}
+                  onClick={onClose}
+                  className={({ isActive }) =>
+                    `flex items-center gap-3 px-5 py-3 rounded-lg text-sm transition-all duration-200 cursor-pointer ${
+                      isActive
+                        ? "bg-orange-800/50 text-orange-50 font-medium shadow-sm shadow-red-950/40"
+                        : "text-orange-200/90 hover:text-orange-100 hover:bg-red-950/50"
+                    }`
+                  }
+                >
+                  <span className="text-xl opacity-80">{sub.icon}</span>
+                  <span>{sub.text}</span>
+                </NavLink>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Client-Site-Controller Dropdown (unchanged) */}
         <div className="mt-4">
           <button
             onClick={() => setPromotionsOpen(!promotionsOpen)}
@@ -279,7 +391,7 @@ const SidebarContent = ({
         </div>
       </nav>
 
-      {/* Logout - always at bottom */}
+      {/* Logout */}
       <div className="p-5 border-t border-red-800/50 mt-auto shrink-0">
         <button
           onClick={onLogout}

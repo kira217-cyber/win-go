@@ -10,6 +10,8 @@ import Home from "../pages/Home/Home";
 import Profile from "../pages/Profile/Profile";
 import Promotion from "../pages/Promotion/Promotion";
 import PromotionDetails from "../pages/PromotionDetails/PromotionDetails";
+import WithdrawHistory from "../pages/WithdrawHistory/WithdrawHistory";
+import DepositHistory from "../pages/DepositHistory/DepositHistory";
 
 export const routes = createBrowserRouter([
   {
@@ -26,6 +28,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Deposit />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "deposit-history",
+        element: (
+          <PrivateRoute>
+            <DepositHistory />
           </PrivateRoute>
         ),
       },
@@ -60,6 +70,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Withdraw />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "withdraw-history",
+        element: (
+          <PrivateRoute>
+            <WithdrawHistory />
           </PrivateRoute>
         ),
       },

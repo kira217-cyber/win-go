@@ -4,11 +4,13 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { FaEdit, FaTrash, FaPlus, FaTimes, FaUpload } from "react-icons/fa";
 
 const API = `${import.meta.env.VITE_API_URL}/api/add-withdraw`;
 
 const AddWithdraw = () => {
   const queryClient = useQueryClient();
+
   const [editItem, setEditItem] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
@@ -34,8 +36,9 @@ const AddWithdraw = () => {
 
   useEffect(() => {
     if (imageFile?.[0]) {
-      setImagePreview(URL.createObjectURL(imageFile[0]));
-      return () => URL.revokeObjectURL(imagePreview);
+      const objectUrl = URL.createObjectURL(imageFile[0]);
+      setImagePreview(objectUrl);
+      return () => URL.revokeObjectURL(objectUrl);
     }
     setImagePreview(null);
   }, [imageFile]);
@@ -49,7 +52,6 @@ const AddWithdraw = () => {
     }
   }, [editItem, setValue]);
 
-  // Fetch all methods
   const { data: methods = [], isLoading } = useQuery({
     queryKey: ["withdraw-methods"],
     queryFn: () => axios.get(API).then((r) => r.data.data || r.data),
@@ -64,18 +66,20 @@ const AddWithdraw = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries(["withdraw-methods"]);
-      toast.success(isEdit ? "Updated!" : "Added!");
+      toast.success(isEdit ? "Updated successfully!" : "Added successfully!");
       resetForm();
     },
-    onError: (err) => toast.error(err?.response?.data?.message || "Error"),
+    onError: (err) =>
+      toast.error(err?.response?.data?.message || "Operation failed"),
   });
 
   const deleteMut = useMutation({
     mutationFn: (id) => axios.delete(`${API}/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries(["withdraw-methods"]);
-      toast.success("Deleted");
+      toast.success("Deleted successfully");
       setDeleteConfirm(false);
+      setItemToDelete(null);
     },
     onError: () => toast.error("Delete failed"),
   });
@@ -98,266 +102,361 @@ const AddWithdraw = () => {
     setEditItem(null);
   };
 
-  const handleDelete = () => {
+  const startEdit = (method) => setEditItem(method);
+
+  const handleDeleteClick = (method) => {
+    setItemToDelete(method);
+    setDeleteConfirm(true);
+  };
+
+  const confirmDelete = () => {
     if (itemToDelete?._id) deleteMut.mutate(itemToDelete._id);
   };
 
-  if (isLoading) return <div className="p-8 text-center">Loading...</div>;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh] text-orange-300">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-orange-500"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Form */}
-      <div className=" shadow-lg rounded-xl p-6 mb-10">
-        <h1 className="text-2xl font-bold mb-6">
-          {isEdit ? "Edit Withdrawal Method" : "Add New Withdrawal Method"}
-        </h1>
+    <div className="min-h-screen bg-gradient-to-br from-orange-950 via-red-950 to-black text-gray-100 p-4 md:p-6 lg:p-8">
+      <div className="max-w-7xl mx-auto">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
+          <h1 className="text-3xl md:text-4xl font-bold tracking-tight bg-gradient-to-r from-orange-400 to-red-400 bg-clip-text text-transparent">
+            {isEdit ? "Edit Withdrawal Method" : "Manage Withdrawal Methods"}
+          </h1>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-          {/* Method Name */}
-          <div className="grid md:grid-cols-2 gap-6">
-            <div>
-              <label className="block mb-1 font-medium">
-                Method Name (English)
-              </label>
-              <input
-                {...register("methodNameEn", { required: true })}
-                className="w-full border rounded px-4 py-2"
-                placeholder="Bank Transfer, bKash, etc."
-              />
+          {isEdit && (
+            <button
+              onClick={resetForm}
+              className="flex items-center gap-2 px-6 py-2.5 bg-gray-700/60 hover:bg-gray-600/80 border border-gray-600 rounded-xl text-orange-200 hover:text-orange-100 transition-all cursor-pointer backdrop-blur-sm"
+            >
+              <FaTimes /> Cancel Edit
+            </button>
+          )}
+        </div>
+
+        {/* ── FORM ──────────────────────────────────────────────── */}
+        <div className="bg-gradient-to-b from-orange-950/70 via-red-950/60 to-black/80 border border-red-800/40 rounded-2xl shadow-2xl shadow-red-950/40 p-6 md:p-8 mb-12 backdrop-blur-sm">
+          <form onSubmit={handleSubmit(onSubmit)} className="space-y-7">
+            {/* Method Names */}
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-orange-300">
+                  Method Name (English)
+                </label>
+                <input
+                  {...register("methodNameEn", { required: "Required" })}
+                  className="w-full px-5 py-3 bg-black/40 border border-red-800/50 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
+                  placeholder="Bank Transfer, Nagad, Rocket..."
+                />
+                {register("methodNameEn").required &&
+                  !watch("methodNameEn") && (
+                    <p className="text-red-400 text-sm mt-1">Required</p>
+                  )}
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-orange-300">
+                  পদ্ধতির নাম (বাংলা)
+                </label>
+                <input
+                  {...register("methodNameBn", { required: "Required" })}
+                  className="w-full px-5 py-3 bg-black/40 border border-red-800/50 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
+                  placeholder="ব্যাংক ট্রান্সফার, নগদ, রকেট..."
+                />
+                {register("methodNameBn").required &&
+                  !watch("methodNameBn") && (
+                    <p className="text-red-400 text-sm mt-1">Required</p>
+                  )}
+              </div>
             </div>
-            <div>
-              <label className="block mb-1 font-medium">
-                পদ্ধতির নাম (বাংলা)
-              </label>
-              <input
-                {...register("methodNameBn", { required: true })}
-                className="w-full border rounded px-4 py-2"
-                placeholder="ব্যাংক ট্রান্সফার, বিকাশ ইত্যাদি"
-              />
-            </div>
-          </div>
 
-          {/* Dynamic Custom Fields */}
-          <div className="border rounded-lg p-5 ">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-lg font-semibold">
-                Custom Input Fields (User will fill these)
-              </h2>
-              <button
-                type="button"
-                onClick={() =>
-                  append({
-                    label: { en: "", bn: "" },
-                    type: "text",
-                    required: false,
-                  })
-                }
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded text-sm"
-              >
-                + Add Field
-              </button>
-            </div>
-
-            {fields.length === 0 && (
-              <p className="text-gray-500 italic text-center py-4">
-                No custom fields yet
-              </p>
-            )}
-
-            {fields.map((field, idx) => (
-              <div
-                key={field.id}
-                className="grid md:grid-cols-2 gap-4 mb-5 p-4  border rounded relative"
-              >
-                <div>
-                  <label className="block mb-1 text-sm">Label (English)</label>
-                  <input
-                    {...register(`customFields.${idx}.label.en`, {
-                      required: true,
-                    })}
-                    placeholder="Account Number"
-                    className="w-full border rounded px-3 py-2"
-                  />
-                </div>
-                <div>
-                  <label className="block mb-1 text-sm">লেবেল (বাংলা)</label>
-                  <input
-                    {...register(`customFields.${idx}.label.bn`, {
-                      required: true,
-                    })}
-                    placeholder="অ্যাকাউন্ট নম্বর"
-                    className="w-full border rounded px-3 py-2"
-                  />
-                </div>
-
-                <div>
-                  <label className="block mb-1 text-sm">Field Type</label>
-                  <select
-                    {...register(`customFields.${idx}.type`)}
-                    className="w-full border rounded px-3 py-2"
-                  >
-                    <option value="text">Text</option>
-                    <option value="number">Number</option>
-                    <option value="email">Email</option>
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <input
-                    type="checkbox"
-                    {...register(`customFields.${idx}.required`)}
-                    className="h-4 w-4"
-                  />
-                  <label>Required field?</label>
-                </div>
-
+            {/* Custom Fields */}
+            <div className="border border-red-800/40 rounded-xl p-6 bg-black/30">
+              <div className="flex justify-between items-center mb-5">
+                <h3 className="text-lg font-semibold text-orange-200">
+                  Custom Input Fields (User will fill these during withdrawal)
+                </h3>
                 <button
                   type="button"
-                  onClick={() => remove(idx)}
-                  className="absolute -top-2 -right-2 bg-red-100 text-red-600 hover:bg-red-200 w-7 h-7 rounded-full flex items-center justify-center"
+                  onClick={() =>
+                    append({
+                      label: { en: "", bn: "" },
+                      type: "text",
+                      required: false,
+                    })
+                  }
+                  className="flex items-center gap-2 px-5 py-2 bg-gradient-to-r from-green-700 to-emerald-700 hover:from-green-600 hover:to-emerald-600 rounded-xl text-white font-medium transition-all cursor-pointer shadow-md shadow-green-900/30"
                 >
-                  ×
+                  <FaPlus size={14} /> Add Field
                 </button>
+              </div>
+
+              {fields.length === 0 && (
+                <p className="text-center text-gray-500 py-8 italic">
+                  No custom fields added yet. Click "+ Add Field" to begin.
+                </p>
+              )}
+
+              <div className="space-y-5">
+                {fields.map((field, idx) => (
+                  <div
+                    key={field.id}
+                    className="relative p-5 bg-black/20 rounded-xl border border-red-900/30 space-y-4"
+                  >
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm text-orange-300">
+                          Label (English)
+                        </label>
+                        <input
+                          {...register(`customFields.${idx}.label.en`, {
+                            required: "Required",
+                          })}
+                          placeholder="Account Number"
+                          className="w-full px-4 py-3 bg-black/40 border border-red-800/50 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 transition-all"
+                        />
+                      </div>
+
+                      <div className="space-y-2">
+                        <label className="block text-sm text-orange-300">
+                          লেবেল (বাংলা)
+                        </label>
+                        <input
+                          {...register(`customFields.${idx}.label.bn`, {
+                            required: "Required",
+                          })}
+                          placeholder="অ্যাকাউন্ট নম্বর"
+                          className="w-full px-4 py-3 bg-black/40 border border-red-800/50 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 transition-all"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label className="block text-sm text-orange-300">
+                          Field Type
+                        </label>
+                        <select
+                          {...register(`customFields.${idx}.type`)}
+                          className="w-full px-4 py-3 bg-black/40 border border-red-800/50 rounded-xl text-orange-100 focus:outline-none focus:border-orange-500 transition-all"
+                        >
+                          <option value="text">Text</option>
+                          <option value="number">Number</option>
+                          <option value="email">Email</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-3 pt-8">
+                        <input
+                          type="checkbox"
+                          {...register(`customFields.${idx}.required`)}
+                          className="h-5 w-5 accent-orange-500 cursor-pointer"
+                        />
+                        <label className="text-orange-200 cursor-pointer">
+                          Required field?
+                        </label>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => remove(idx)}
+                      className="absolute -top-3 -right-3 bg-red-900/80 hover:bg-red-800 text-white w-8 h-8 rounded-full flex items-center justify-center shadow-md cursor-pointer transition-all hover:scale-110"
+                    >
+                      <FaTimes size={14} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Image Upload */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-orange-300">
+                Method Image / Icon
+              </label>
+              <div className="flex items-center gap-4 p-4 bg-black/30 border-2 border-dashed border-red-800/50 rounded-xl hover:border-orange-500/60 transition-all cursor-pointer group">
+                <FaUpload className="text-3xl text-orange-400 group-hover:text-orange-300 transition-colors" />
+                <input
+                  type="file"
+                  accept="image/*"
+                  {...register("image")}
+                  className="w-full text-orange-100 file:mr-4 file:py-2 file:px-5 file:rounded-xl file:border-0 file:bg-gradient-to-r file:from-orange-700 file:to-red-700 file:text-white file:font-medium file:cursor-pointer file:hover:from-orange-600 file:hover:to-red-600"
+                />
+              </div>
+
+              {imagePreview && (
+                <div className="mt-4 p-3 bg-black/40 rounded-xl border border-red-800/40 inline-block">
+                  <img
+                    src={imagePreview}
+                    alt="preview"
+                    className="max-h-48 object-contain rounded-lg"
+                  />
+                </div>
+              )}
+              {isEdit && editItem?.image && !imagePreview && (
+                <div className="mt-4 p-3 bg-black/40 rounded-xl border border-red-800/40 inline-block">
+                  <img
+                    src={`${import.meta.env.VITE_API_URL}${editItem.image}`}
+                    alt="current"
+                    className="max-h-48 object-contain rounded-lg"
+                  />
+                </div>
+              )}
+            </div>
+
+            {/* Submit Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-6">
+              <button
+                type="submit"
+                disabled={mutation.isPending}
+                className="flex-1 py-3.5 px-8 bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 rounded-xl text-white font-medium transition-all shadow-lg shadow-red-900/40 disabled:opacity-60 cursor-pointer"
+              >
+                {mutation.isPending
+                  ? "Saving..."
+                  : isEdit
+                    ? "Update Withdrawal Method"
+                    : "Add Withdrawal Method"}
+              </button>
+
+              {isEdit && (
+                <button
+                  type="button"
+                  onClick={resetForm}
+                  className="flex-1 py-3.5 px-8 bg-gray-700/70 hover:bg-gray-600/80 border border-gray-600 rounded-xl text-orange-200 hover:text-orange-100 transition-all cursor-pointer"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+          </form>
+        </div>
+
+        {/* ── EXISTING METHODS ────────────────────────────────────── */}
+        <h2 className="text-2xl font-bold mb-6 text-orange-200 tracking-tight">
+          Existing Withdrawal Methods
+        </h2>
+
+        {methods.length === 0 ? (
+          <div className="text-center py-16 text-gray-400 italic bg-black/30 rounded-2xl border border-red-800/30">
+            No withdrawal methods added yet.
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {methods.map((m) => (
+              <div
+                key={m._id}
+                className="group bg-gradient-to-b from-orange-950/60 to-red-950/50 border border-red-800/40 rounded-2xl overflow-hidden shadow-lg hover:shadow-2xl hover:shadow-red-900/40 transition-all duration-300 hover:-translate-y-1 cursor-pointer"
+              >
+                {m.image && (
+                  <div className="h-48 bg-black/40 flex items-center justify-center p-4">
+                    <img
+                      src={`${import.meta.env.VITE_API_URL}${m.image}`}
+                      alt={m.methodName?.en}
+                      className="max-h-full object-contain"
+                    />
+                  </div>
+                )}
+
+                <div className="p-6">
+                  <h3 className="font-bold text-xl mb-4 text-orange-100">
+                    {m.methodName?.en} <span className="text-gray-400">/</span>{" "}
+                    {m.methodName?.bn}
+                  </h3>
+
+                  {m.customFields?.length > 0 && (
+                    <div className="mb-6">
+                      <p className="text-sm text-orange-300/80 mb-3">
+                        Custom Fields:
+                      </p>
+                      <div className="space-y-2">
+                        {m.customFields.map((f, i) => (
+                          <div
+                            key={i}
+                            className="flex items-center justify-between text-sm bg-black/30 p-3 rounded-lg border border-red-900/30"
+                          >
+                            <div>
+                              <span className="font-medium text-orange-200">
+                                {f.label?.en}
+                              </span>
+                              <span className="text-orange-200/60 ml-2">
+                                ({f.type})
+                              </span>
+                            </div>
+                            {f.required && (
+                              <span className="px-2.5 py-1 bg-red-900/50 text-red-300 text-xs rounded-full">
+                                Required
+                              </span>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex justify-end gap-5">
+                    <button
+                      onClick={() => startEdit(m)}
+                      className="flex items-center gap-2 text-orange-400 hover:text-orange-300 transition-colors cursor-pointer"
+                    >
+                      <FaEdit /> Edit
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClick(m)}
+                      className="flex items-center gap-2 text-red-400 hover:text-red-300 transition-colors cursor-pointer"
+                    >
+                      <FaTrash /> Delete
+                    </button>
+                  </div>
+                </div>
               </div>
             ))}
           </div>
+        )}
 
-          {/* Image */}
-          <div>
-            <label className="block mb-1 font-medium">
-              Method Image / Icon
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              {...register("image")}
-              className="w-full border rounded px-4 py-2 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-blue-50 file:text-blue-700"
-            />
-            {imagePreview && (
-              <img
-                src={imagePreview}
-                alt="preview"
-                className="mt-4 max-h-32 object-contain border rounded"
-              />
-            )}
-          </div>
-
-          <div className="flex gap-4">
-            <button
-              type="submit"
-              disabled={mutation.isPending}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded disabled:opacity-60"
-            >
-              {mutation.isPending
-                ? "Saving..."
-                : isEdit
-                  ? "Update Method"
-                  : "Add Method"}
-            </button>
-
-            {isEdit && (
-              <button
-                type="button"
-                onClick={resetForm}
-                className="bg-gray-500 hover:bg-gray-600 text-white px-8 py-3 rounded"
-              >
-                Cancel Edit
-              </button>
-            )}
-          </div>
-        </form>
-      </div>
-
-      {/* Cards List */}
-      <h2 className="text-xl font-bold mb-6">Existing Withdrawal Methods</h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {methods.map((m) => (
-          <div
-            key={m._id}
-            className="border rounded-xl shadow hover:shadow-md overflow-hidden"
-          >
-            {m.image && (
-              <div className="h-40 bg-gray-50 flex items-center justify-center">
-                <img
-                  src={`${import.meta.env.VITE_API_URL}${m.image}`}
-                  alt={m.methodName?.en}
-                  className="max-h-full object-contain"
-                />
-              </div>
-            )}
-
-            <div className="p-5">
-              <h3 className="font-bold text-lg mb-2">
-                {m.methodName?.en} / {m.methodName?.bn}
+        {/* Delete Confirmation Modal */}
+        {deleteConfirm && (
+          <div className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+            <div className="bg-gradient-to-b from-orange-950 to-red-950 border border-red-800/50 rounded-2xl p-8 max-w-md w-full shadow-2xl shadow-red-950/60">
+              <h3 className="text-2xl font-bold text-orange-100 mb-5">
+                Confirm Deletion
               </h3>
-
-              {m.customFields?.length > 0 && (
-                <div className="mb-4">
-                  <p className="text-sm text-gray-600 mb-2">Required Fields:</p>
-                  <ul className="text-sm space-y-1">
-                    {m.customFields.map((f, i) => (
-                      <li key={i} className="flex items-center gap-2">
-                        <span className="font-medium">{f.label?.en}</span>
-                        <span className="text-gray-500">({f.type})</span>
-                        {f.required && (
-                          <span className="text-red-600 text-xs">Required</span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-
-              <div className="flex justify-end gap-4 mt-4">
-                <button
-                  onClick={() => setEditItem(m)}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  Edit
-                </button>
+              <p className="text-orange-200/90 mb-8">
+                Are you sure you want to delete{" "}
+                <strong className="text-orange-300">
+                  {itemToDelete?.methodName?.en}
+                </strong>
+                ?<br />
+                This action cannot be undone.
+              </p>
+              <div className="flex justify-end gap-4">
                 <button
                   onClick={() => {
-                    setItemToDelete(m);
-                    setDeleteConfirm(true);
+                    setDeleteConfirm(false);
+                    setItemToDelete(null);
                   }}
-                  className="text-red-600 hover:text-red-800 text-sm font-medium"
+                  className="px-8 py-3 bg-gray-800/70 hover:bg-gray-700 rounded-xl text-orange-200 hover:text-orange-100 transition-all cursor-pointer"
                 >
-                  Delete
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={deleteMut.isPending}
+                  className="px-8 py-3 bg-gradient-to-r from-red-700 to-red-800 hover:from-red-600 hover:to-red-700 rounded-xl text-white font-medium transition-all shadow-lg shadow-red-900/50 disabled:opacity-60 cursor-pointer"
+                >
+                  {deleteMut.isPending ? "Deleting..." : "Delete"}
                 </button>
               </div>
             </div>
           </div>
-        ))}
+        )}
       </div>
-
-      {/* Delete Modal */}
-      {deleteConfirm && (
-        <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-          <div className=" rounded-xl p-6 max-w-sm w-full mx-4">
-            <h3 className="text-xl font-bold mb-4">Confirm Delete</h3>
-            <p className="mb-6">
-              Delete <strong>{itemToDelete?.methodName?.en}</strong>{" "}
-              permanently?
-            </p>
-            <div className="flex justify-end gap-4">
-              <button
-                onClick={() => setDeleteConfirm(false)}
-                className="px-6 py-2 bg-gray-200 hover:bg-gray-300 rounded"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-6 py-2 bg-red-600 hover:bg-red-700 text-white rounded disabled:opacity-60"
-                disabled={deleteMut.isPending}
-              >
-                {deleteMut.isPending ? "Deleting..." : "Delete"}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

@@ -174,6 +174,40 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get("/deposit-history/:id", async (req, res) => {
+  try {
+    const userId = req.params.id;
+
+    // Basic ObjectId validation
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Invalid user ID",
+      });
+    }
+
+    const deposits = await DepositRequest.find({ user: userId })
+      .populate({
+        path: "method",
+        select: "methodName image accountNumber", // adjust fields as needed
+      })
+      .sort({ createdAt: -1 }) // newest first
+      .lean();
+
+    res.json({
+      success: true,
+      count: deposits.length,
+      data: deposits,
+    });
+  } catch (err) {
+    console.error("Deposit history error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
+  }
+});
 
 // PUT /api/deposit-requests/:id/approve
 // routes/depositRequest.route.js (only the approve part updated — rest same)
