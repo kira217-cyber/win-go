@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { FaSyncAlt } from "react-icons/fa";
 import Skeleton from "react-loading-skeleton";
-import { Link } from "react-router"; // fixed import (use -dom)
+import { Link } from "react-router"; // corrected import
 import { IoLogIn } from "react-icons/io5";
 import { FaRegRegistered } from "react-icons/fa";
 import { PiHandDepositBold, PiHandWithdrawBold } from "react-icons/pi";
@@ -12,7 +12,7 @@ import { useLanguage } from "../../context/LanguageProvider";
 import axios from "axios";
 
 const Navbar = () => {
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, balanceData, balanceLoading, refreshBalance } = useAuth();
   const [langOpen, setLangOpen] = useState(false);
   const { language, changeLanguage } = useLanguage();
 
@@ -25,7 +25,7 @@ const Navbar = () => {
     const fetchSettings = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL || "http://localhost:5007"}/api/navbar`,
+          `${import.meta.env.VITE_API_URL || "http://localhost:5007"}/api/navbar`
         );
         setSettings(res.data);
       } catch (err) {
@@ -41,9 +41,7 @@ const Navbar = () => {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const res = await axios.get(
-          `${import.meta.env.VITE_API_URL}/api/logos`,
-        );
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/logos`);
         setLogo(res.data.websiteLogo);
       } catch (err) {
         console.error("Failed to load logo settings:", err);
@@ -80,6 +78,9 @@ const Navbar = () => {
     );
   }
 
+  const balanceAmount = balanceData?.balance || 0;
+  const displayBalance = balanceAmount.toLocaleString("en-US") + " BDT";
+
   return (
     <>
       <NavHeader />
@@ -98,13 +99,13 @@ const Navbar = () => {
           <img
             className="h-10 md:h-12 w-12 md:w-32"
             src={`${import.meta.env.VITE_API_URL}/${logo}`}
-            alt=""
+            alt="Logo"
           />
         </Link>
 
         {/* RIGHT SIDE */}
         <div className="flex items-center gap-4 relative">
-          {/* LANGUAGE BUTTON - remains pure Tailwind */}
+          {/* LANGUAGE BUTTON */}
           <div className="relative">
             <motion.button
               whileTap={{ scale: 0.95 }}
@@ -121,7 +122,6 @@ const Navbar = () => {
                 className="w-5 h-4 rounded-sm object-cover"
               />
               <span className="hidden md:block">
-                {" "}
                 {language === "Bangla" ? "বাংলা" : "English"}
               </span>
             </motion.button>
@@ -171,9 +171,22 @@ const Navbar = () => {
           {/* AUTH UI */}
           {user ? (
             <>
-              <div className="flex items-center gap-2 bg-black/25 px-4 py-2 rounded-full text-white text-sm font-semibold cursor-pointer">
-                <span>100 BDT</span>
-                <FaSyncAlt className="text-xs" />
+              {/* Balance display + refresh on click */}
+              <div
+                onClick={refreshBalance}
+                className="flex items-center gap-2 bg-black/25 px-4 py-2 rounded-full text-white text-sm font-semibold cursor-pointer hover:bg-black/40 transition-colors"
+                title="Click to refresh balance"
+              >
+                {balanceLoading ? (
+                  <Skeleton width={60} height={18} borderRadius={4} />
+                ) : (
+                  <>
+                    <span>{displayBalance}</span>
+                    <FaSyncAlt
+                      className={`text-xs ${balanceLoading ? "animate-spin" : ""}`}
+                    />
+                  </>
+                )}
               </div>
 
               <Link to="/withdraw">

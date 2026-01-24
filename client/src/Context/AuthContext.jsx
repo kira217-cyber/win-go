@@ -1,16 +1,22 @@
-// context/AuthProvider.jsx   (recommended file name)
-import { createContext, useState, useEffect } from "react";
+// context/AuthProvider.jsx
+import { createContext, useState, useEffect, useCallback } from "react";
+import axios from "axios";
 
 export const AuthContext = createContext(null);
 
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true); // important for protected routes
-  console.log(user?.id)
-  const userId = user?.id
+  const [loading, setLoading] = useState(true);
 
-  // Load user & token from localStorage when app starts
+  // Balance related states
+  const [balanceData, setBalanceData] = useState(null);
+  const [balanceLoading, setBalanceLoading] = useState(false);
+  const [balanceError, setBalanceError] = useState(null);
+
+  const userId = user?._id || user?.id; // handle both _id and id cases
+
+  // Load user & token from localStorage on mount
   useEffect(() => {
     try {
       const storedUser = localStorage.getItem("user");
@@ -24,7 +30,6 @@ const AuthProvider = ({ children }) => {
       }
     } catch (err) {
       console.error("Failed to load auth from localStorage:", err);
-      // Clean corrupted data
       localStorage.removeItem("user");
       localStorage.removeItem("token");
     } finally {
@@ -32,32 +37,91 @@ const AuthProvider = ({ children }) => {
     }
   }, []);
 
-  // Login function – now accepts real data from API
-  const login = (userData, jwtToken) => {
-    // userData example: { name, email, phone, _id, role, ... }
-    setUser(userData);
-    setToken(jwtToken);
+  // ────────────────────────────────────────────────
+  // Fetch balance function
+  // ────────────────────────────────────────────────
+  const fetchBalance = useCallback(async () => {
+    if (!userId) {
+      console.log("No userId available → skipping balance fetch");
+      return;
+    }
 
-    // Save to localStorage
-    localStorage.setItem("user", JSON.stringify(userData));
-    localStorage.setItem("token", jwtToken);
+    setBalanceLoading(true);
+    setBalanceError(null);
+
+    try {
+      const res = await axios.get(
+        `${import.meta.env.VITE_API_URL}/api/user/balance/${userId}`,
+        {
+          headers: {
+            Authorization: token ? `Bearer ${token}` : undefined,
+            // If your backend doesn't require token → you can remove the Authorization header
+          },
+        },
+      );
+
+      if (res.data?.success) {
+        setBalanceData(res.data.data);
+        console.log("Balance fetched successfully:", res.data.data);
+      } else {
+        throw new Error(res.data?.message || "Failed to get balance");
+      }
+    } catch (err) {
+      const errorMsg =
+        err.response?.data?.message || err.message || "Unknown error";
+      setBalanceError(errorMsg);
+      console.error("Balance fetch failed:", errorMsg);
+    } finally {
+      setBalanceLoading(false);
+    }
+  }, [userId, token]);
+
+  // Automatically fetch balance when userId appears (after login)
+  useEffect(() => {
+    if (userId) {
+      fetchBalance();
+    }
+  }, [userId, fetchBalance]);
+
+  // ────────────────────────────────────────────────
+  // Refresh balance – can be called from any component
+  // ────────────────────────────────────────────────
+  const refreshBalance = () => {
+    console.log("Manually refreshing balance...");
+    fetchBalance();
   };
 
-  // Logout function
+  // Login function
+  const login = (userData, jwtToken) => {
+    setUser(userData);
+    setToken(jwtToken);
+    localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", jwtToken);
+    // Balance will auto-fetch via the useEffect above
+  };
+
+  // Logout
   const logout = () => {
     setUser(null);
     setToken(null);
+    setBalanceData(null);
+    setBalanceError(null);
     localStorage.removeItem("user");
     localStorage.removeItem("token");
   };
 
-  // Context value – everything components need
   const authInfo = {
     user,
     userId,
-    token, // useful for API calls
-    loading, // show spinner while checking auth
+    token,
+    loading,
     isAuthenticated: !!user && !!token,
+
+    balanceData, 
+    balanceLoading,
+    balanceError,
+    refreshBalance,
+
     login,
     logout,
   };

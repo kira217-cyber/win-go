@@ -194,6 +194,54 @@ router.get("/me", async (req, res) => {
 });
 
 
+
+
+
+// GET /api/users/balance/:id
+router.get('/balance/:id', async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Basic MongoDB ObjectId format validation (optional but recommended)
+    if (!id || !/^[0-9a-fA-F]{24}$/.test(id)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid user ID format',
+      });
+    }
+
+    const user = await User.findById(id).select(
+      'balance turnoverTarget turnoverCompleted firstName lastName'
+      // ↑ you can remove firstName/lastName if you don't want to expose them
+    );
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found',
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        userId: user._id,
+        // firstName: user.firstName,     // optional
+        // lastName: user.lastName,       // optional
+        balance: user.balance || 0,
+        turnoverTarget: user.turnoverTarget || 0,
+        turnoverCompleted: user.turnoverCompleted || 0,
+      },
+    });
+  } catch (error) {
+    console.error('Error fetching balance:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Server error',
+      error: error.message,
+    });
+  }
+});
 // GET /api/users
 router.get('/admin', async (req, res) => {
   try {
