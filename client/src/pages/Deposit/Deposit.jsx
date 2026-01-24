@@ -161,7 +161,7 @@ const Deposit = () => {
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-gray-50/10 backdrop-blur-sm rounded-2xl shadow-2xl shadow-red-900/30 p-6 md:p-10 border border-red-800/30"
+          className="bg-gray-50/10 backdrop-blur-sm rounded-2xl shadow-2xl shadow-red-900/30 p-6 md:p-10 border border-white"
         >
           {/* Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6">
@@ -202,8 +202,8 @@ const Deposit = () => {
                     }}
                     className={`cursor-pointer rounded-xl p-4 text-center transition-all duration-300 border-2 ${
                       selectedMethod?._id === m._id
-                        ? "border-orange-500 bg-orange-950/40 shadow-lg shadow-orange-900/50"
-                        : "border-red-800/40 bg-black/40 hover:border-orange-600/60 hover:bg-black/60"
+                        ? "border-white bg-orange-950/40 shadow-lg shadow-orange-900/50"
+                        : "border-white bg-black/40 hover:border-whiter hover:bg-black/60"
                     }`}
                   >
                     {m.image && (

@@ -22,6 +22,7 @@ import depositMethodRoutes from "./routes/depositMethodRoutes.js";
 import withdrawMethodRoutes from "./routes/withdrawMethodRoutes.js";
 import depositRequestRoutes from "./routes/depositRequestRoutes.js";
 import withdrawRequestRoutes from "./routes/withdrawRequestRoutes.js";
+import gameRoutes  from "./routes/gameRoutes.js"
 
 dotenv.config();
 connectDB();
@@ -53,6 +54,7 @@ app.use("/api/add-deposit", depositMethodRoutes);
 app.use("/api/add-withdraw", withdrawMethodRoutes);
 app.use("/api/deposit-requests", depositRequestRoutes);
 app.use("/api/withdraw-requests", withdrawRequestRoutes);
+app.use('/api/games', gameRoutes);
 
 app.get("/", (req, res) => {
   res.send("Win-Go API is running 🚀");

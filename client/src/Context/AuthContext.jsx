@@ -116,7 +116,6 @@ const AuthProvider = ({ children }) => {
     token,
     loading,
     isAuthenticated: !!user && !!token,
-
     balanceData, 
     balanceLoading,
     balanceError,

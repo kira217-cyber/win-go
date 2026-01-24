@@ -24,6 +24,7 @@ const fetchProfile = async (userId) => {
   const { data } = await axios.get(
     `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
   );
+  console.log(data)
   return data;
 };
 

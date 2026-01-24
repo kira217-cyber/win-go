@@ -17,6 +17,15 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: [2, "Last name must be at least 2 characters"],
     },
+    username: {
+      type: String,
+      required: true,
+      unique: true,
+      trim: true,
+      minlength: 6,
+      maxlength: 6,
+      match: [/^[a-z]{6}$/, "Username must be exactly 6 lowercase letters"],
+    },
 
     phone: {
       type: String,

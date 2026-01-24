@@ -7,6 +7,26 @@ import User from "../models/Users.js"; // ← সঠিক ইম্পোর্
 
 const router = express.Router();
 
+const generateUsername = async () => {
+  const letters = "abcdefghijklmnopqrstuvwxyz";
+
+  for (let attempt = 0; attempt < 30; attempt++) {
+    // সর্বোচ্চ ৩০ বার চেষ্টা
+    let username = "";
+    for (let i = 0; i < 6; i++) {
+      username += letters.charAt(Math.floor(Math.random() * letters.length));
+    }
+
+    // চেক করি এটা আগে কেউ নিয়েছে কি না
+    const existing = await User.findOne({ username });
+    if (!existing) {
+      return username;
+    }
+  }
+
+  throw new Error("Could not generate unique username after 30 attempts");
+};
+
 // Register Route
 router.post("/register", async (req, res) => {
   try {
@@ -21,10 +41,16 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    // রেফার কোড জেনারেট (unique 6 chars)
+    // রেফার কোড জেনারেট
     const generateReferCode = () =>
       Math.random().toString(36).substring(2, 8).toUpperCase();
     let myReferCode = generateReferCode();
+    while (await User.findOne({ referCode: myReferCode })) {
+      myReferCode = generateReferCode();
+    }
+
+    // নতুন → username জেনারেট
+    const username = await generateUsername();
 
     // রেফারার চেক
     let referredBy = null;
@@ -37,31 +63,30 @@ router.post("/register", async (req, res) => {
       }
     }
 
-    // পাসওয়ার্ড হ্যাশ করা
+    // পাসওয়ার্ড হ্যাশ
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // নতুন ইউজার তৈরি
+    // নতুন ইউজার
     const newUser = new User({
       firstName,
       lastName,
       phone,
-      password: hashedPassword, // hashed পাসওয়ার্ড সেভ হচ্ছে
+      password: hashedPassword,
       referCode: myReferCode,
       referredBy,
+      username, // ← নতুন যোগ হলো
       role: "user",
     });
 
     await newUser.save();
 
-    // রেফারার থাকলে তাদের createdUsers-এ নতুন ইউজার যোগ করা
     if (referredBy) {
       await User.findByIdAndUpdate(referredBy, {
         $push: { createdUsers: newUser._id },
       });
     }
 
-    // JWT টোকেন তৈরি
     const token = jwt.sign({ id: newUser._id }, process.env.JWT_SECRET, {
       expiresIn: "30d",
     });
@@ -74,6 +99,7 @@ router.post("/register", async (req, res) => {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         phone: newUser.phone,
+        username: newUser.username, // ← ফ্রন্টএন্ডে পাঠানো হচ্ছে
         referCode: newUser.referCode,
         balance: newUser.balance,
       },
@@ -156,7 +182,7 @@ router.get("/me", async (req, res) => {
     }
 
     const user = await User.findById(userId).select(
-      "firstName lastName phone balance turnoverTarget turnoverCompleted status role"
+      "firstName lastName phone balance turnoverTarget turnoverCompleted status role",
     );
 
     if (!user) {
@@ -167,7 +193,10 @@ router.get("/me", async (req, res) => {
     }
 
     // Calculate remaining turnover (server-side)
-    const remainingTurnover = Math.max(0, user.turnoverTarget - user.turnoverCompleted);
+    const remainingTurnover = Math.max(
+      0,
+      user.turnoverTarget - user.turnoverCompleted,
+    );
 
     res.json({
       success: true,
@@ -193,12 +222,7 @@ router.get("/me", async (req, res) => {
   }
 });
 
-
-
-
-
-// GET /api/users/balance/:id
-router.get('/balance/:id', async (req, res) => {
+router.get("/balance/:id", async (req, res) => {
   try {
     const { id } = req.params;
 
@@ -206,19 +230,19 @@ router.get('/balance/:id', async (req, res) => {
     if (!id || !/^[0-9a-fA-F]{24}$/.test(id)) {
       return res.status(400).json({
         success: false,
-        message: 'Invalid user ID format',
+        message: "Invalid user ID format",
       });
     }
 
     const user = await User.findById(id).select(
-      'balance turnoverTarget turnoverCompleted firstName lastName'
+      "balance turnoverTarget turnoverCompleted firstName lastName",
       // ↑ you can remove firstName/lastName if you don't want to expose them
     );
 
     if (!user) {
       return res.status(404).json({
         success: false,
-        message: 'User not found',
+        message: "User not found",
       });
     }
 
@@ -234,31 +258,32 @@ router.get('/balance/:id', async (req, res) => {
       },
     });
   } catch (error) {
-    console.error('Error fetching balance:', error);
+    console.error("Error fetching balance:", error);
     return res.status(500).json({
       success: false,
-      message: 'Server error',
+      message: "Server error",
       error: error.message,
     });
   }
 });
+
 // GET /api/users
-router.get('/admin', async (req, res) => {
+router.get("/admin", async (req, res) => {
   try {
-    const users = await User.find({}).select('-password -__v');
+    const users = await User.find({}).select("-password -__v");
     res.json(users);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
 // GET single user by ID (for profile)
-router.get('/:id', async (req, res) => {
+router.get("/:id", async (req, res) => {
   try {
     const user = await User.findById(req.params.id);
-    
+
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Remove sensitive fields before sending
@@ -274,14 +299,14 @@ router.get('/:id', async (req, res) => {
 });
 
 // UPDATE user profile by ID
-router.put('/:id', async (req, res) => {
+router.put("/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { firstName, lastName, phone, password } = req.body;
 
     const user = await User.findById(id);
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Update fields only if they are sent in request
@@ -292,12 +317,12 @@ router.put('/:id', async (req, res) => {
       // Check if phone is already used by another user
       const existing = await User.findOne({ phone });
       if (existing && existing._id.toString() !== id) {
-        return res.status(400).json({ message: 'Phone number already in use' });
+        return res.status(400).json({ message: "Phone number already in use" });
       }
       user.phone = phone.trim();
     }
 
-    if (password && password.trim() !== '') {
+    if (password && password.trim() !== "") {
       const salt = await bcrypt.genSalt(10);
       user.password = await bcrypt.hash(password, salt);
     }
@@ -318,21 +343,21 @@ router.put('/:id', async (req, res) => {
 });
 
 // GET /api/user/admin/:id
-router.get('/admin/:id', async (req, res) => {
+router.get("/admin/:id", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select('-password -__v');
+    const user = await User.findById(req.params.id).select("-password -__v");
     if (!user) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
     res.status(200).json(user);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
 // PUT /api/user/admin/:id
-router.put('/admin/:id', async (req, res) => {
+router.put("/admin/:id", async (req, res) => {
   try {
     const { firstName, lastName, phone, balance, status, password } = req.body;
 
@@ -352,46 +377,44 @@ router.put('/admin/:id', async (req, res) => {
     const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
       updateData,
-      { new: true, runValidators: true }
-    ).select('-password -__v');
+      { new: true, runValidators: true },
+    ).select("-password -__v");
 
     if (!updatedUser) {
-      return res.status(404).json({ message: 'User not found' });
+      return res.status(404).json({ message: "User not found" });
     }
 
     res.status(200).json(updatedUser);
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(400).json({ message: 'Phone number already exists' });
+      return res.status(400).json({ message: "Phone number already exists" });
     }
     console.error(err);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 });
 
 // PATCH /api/users/:id/status
-router.patch('/admin/:id/status', async (req, res) => {
+router.patch("/admin/:id/status", async (req, res) => {
   const { status } = req.body;
 
-  if (!['active', 'inactive', 'blocked'].includes(status)) {
-    return res.status(400).json({ message: 'Invalid status value' });
+  if (!["active", "inactive", "blocked"].includes(status)) {
+    return res.status(400).json({ message: "Invalid status value" });
   }
 
   try {
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { status },
-      { new: true, runValidators: true }
-    ).select('-password -__v');
+      { new: true, runValidators: true },
+    ).select("-password -__v");
 
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    if (!user) return res.status(404).json({ message: "User not found" });
 
     res.json(user);
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ message: "Server error" });
   }
 });
-
-
 
 export default router;
