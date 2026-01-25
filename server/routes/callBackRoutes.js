@@ -55,18 +55,8 @@ router.post("/", async (req, res) => {
         .json({ success: false, message: "Invalid amount" });
     }
 
-    // Duplicate check
-    if (transaction_id) {
-      const existing = await User.findOne({
-        "gameHistory.transaction_id": transaction_id,
-      });
-      if (existing) {
-        return res
-          .status(409)
-          .json({ success: false, message: "Duplicate transaction ID" });
-      }
-    }
 
+  
     // Balance change
     let balanceChange = 0;
     if (bet_type === "BET") {

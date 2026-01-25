@@ -31,9 +31,6 @@ const gameHistorySchema = new mongoose.Schema(
 
     transaction_id: {
       type: String,
-      required: true,
-      unique: true,
-      index: { unique: true },
     },
 
     round_id: {
@@ -95,9 +92,7 @@ const gameHistorySchema = new mongoose.Schema(
 );
 
 // ─── Optimized Indexes ──────────────────────────────────────────────────────
-// Keep only the most useful ones — too many indexes hurt performance
 
-gameHistorySchema.index({ transaction_id: 1 });                // unique constraint
 gameHistorySchema.index({ createdAt: -1 });                    // recent games
 gameHistorySchema.index({ status: 1, createdAt: -1 });         // filter by status + time
 gameHistorySchema.index({ provider_code: 1, status: 1 });      // per-provider status reports

@@ -1,6 +1,6 @@
 // routes/floatingSocialRoutes.js
 import express from 'express';
-import FloatingSocial from '../models/floatingSocial.js';
+import FloatingSocial from '../models/FloatingSocial.js';
 import upload from '../config/multer.js'; // your multer config
 import fs from 'fs';
 import path from 'path';

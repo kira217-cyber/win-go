@@ -187,7 +187,7 @@ const Withdraw = () => {
             </h1>
             <button
               onClick={() => navigate("/withdraw-history")}
-              className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 rounded-xl text-white font-medium transition-all shadow-lg shadow-purple-900/30"
+              className="flex cursor-pointer items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 rounded-xl text-white font-medium transition-all shadow-lg shadow-purple-900/30"
             >
               <FaHistory /> {isBangla ? "উত্তোলনের ইতিহাস" : "Withdrawal History"}
             </button>
@@ -265,7 +265,7 @@ const Withdraw = () => {
                 {isBangla ? "কোনো উত্তোলন পদ্ধতি উপলব্ধ নেই" : "No withdrawal methods available."}
               </p>
             ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-2 gap-4 sm:gap-6">
+              <div className="grid grid-cols-2 md:grid-cols-2 gap-4 sm:gap-6">
                 {methods.map((m) => (
                   <motion.div
                     key={m._id}
@@ -275,7 +275,7 @@ const Withdraw = () => {
                     className={`cursor-pointer rounded-xl p-4 text-center transition-all border-2 ${
                       selectedMethod?._id === m._id
                         ? "border-orange-500 bg-orange-950/50 shadow-orange-900/50"
-                        : "border-red-800/50 bg-black/40 hover:border-orange-600 hover:bg-black/60"
+                        : " bg-black/40 hover:border-white hover:bg-black/60"
                     }`}
                   >
                     {m.image && (

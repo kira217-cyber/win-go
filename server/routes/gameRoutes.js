@@ -77,8 +77,8 @@ router.post("/playgame", async (req, res) => {
     console.log("PlayGame Request Body:", req.body);
 
     const postData = {
-      home_url: "https://api.tk999.oracelsoft.com", // Fix if typo: perhaps "oracle" not "oracel"?
-      token: "5f4e59f09dc1a061cdb5185ceef6e75b",
+      home_url: "https://1winzo.com", // Fix if typo: perhaps "oracle" not "oracel"?
+      token: "e4acae0a556f8ca98977ec7a9510f924",
       username: username + "45", // Append as per your code
       money: money,
       gameid: gameID,
