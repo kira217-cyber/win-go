@@ -1,18 +1,15 @@
 // routes/callback.js
 import express from "express";
 import User from "../models/Users.js";
-import mongoose from "mongoose";
+import DepositTurnover from "../models/DepositTurnover.js";
 
 const router = express.Router();
 
 router.post("/", async (req, res) => {
-  const session = await mongoose.startSession();
-  session.startTransaction();
-
   try {
     const {
       account_id,
-      username: rawInput,
+      username: rawUsername,
       provider_code,
       amount,
       game_code,
@@ -22,91 +19,75 @@ router.post("/", async (req, res) => {
       times,
     } = req.body;
 
-    console.log("Callback received:", {
-      account_id,
-      rawInput,
-      provider_code,
-      amount,
-      bet_type,
-      game_code,
-      transaction_id,
-    });
+    console.log("Callback received:", req.body);
 
     // Validation
     if (
-      !rawInput ||
+      !rawUsername ||
       !provider_code ||
       amount === undefined ||
       !game_code ||
       !bet_type
     ) {
-      throw new Error("Missing required fields");
+      return res
+        .status(400)
+        .json({ success: false, message: "Missing required fields" });
     }
 
-    const raw = String(rawInput).trim();
-
-    // Phone lookup candidates
-    const candidates = [raw];
-    if (raw.length === 12 && raw.startsWith("01")) {
-      candidates.push(raw.slice(0, -1));
-    }
-    if (raw.length === 11 && raw.startsWith("01")) {
-      candidates.push("0" + raw);
+    // Clean username (remove trailing "45" if present)
+    let cleanUsername = String(rawUsername).trim();
+    if (cleanUsername.endsWith("45")) {
+      cleanUsername = cleanUsername.slice(0, -2);
     }
 
-    console.log("Searching phone variants:", candidates);
-
-    // Find user
-    const player = await User.findOne({ phone: { $in: candidates } }).session(
-      session,
-    );
+    const player = await User.findOne({ username: cleanUsername });
     if (!player) {
-      console.log("User NOT found for variants:", candidates);
-      throw new Error("User not found");
+      console.log("User not found:", cleanUsername);
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
-
-    console.log(
-      "Player found →",
-      player.phone,
-      "Balance before:",
-      player.balance,
-    );
 
     const amountFloat = parseFloat(amount);
     if (isNaN(amountFloat) || amountFloat < 0) {
-      throw new Error("Invalid amount");
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid amount" });
     }
 
-    // Prevent duplicate transaction
+    // Duplicate check
     if (transaction_id) {
       const existing = await User.findOne({
         "gameHistory.transaction_id": transaction_id,
-      }).session(session);
-
+      });
       if (existing) {
-        throw new Error("Duplicate transaction ID");
+        return res
+          .status(409)
+          .json({ success: false, message: "Duplicate transaction ID" });
       }
     }
 
-    // Calculate balance change
+    // Balance change
     let balanceChange = 0;
     if (bet_type === "BET") {
       balanceChange = -amountFloat;
     } else if (bet_type === "SETTLE") {
       balanceChange = +amountFloat;
     } else {
-      throw new Error("Invalid bet_type");
+      return res
+        .status(400)
+        .json({ success: false, message: "Invalid bet_type" });
     }
 
     const newBalance = (player.balance || 0) + balanceChange;
 
-    // Turnover logic: ONLY BET increases turnoverCompleted
+    // Turnover increment — BET এবং SETTLE দুটোতেই
     let turnoverIncrement = 0;
     if (bet_type === "BET" || bet_type === "SETTLE") {
-      turnoverIncrement = Math.abs(amountFloat); // positive bet amount counts
+      turnoverIncrement = amountFloat;
     }
 
-    // Create game history record
+    // Game history record
     const gameRecord = {
       provider_code,
       game_code,
@@ -121,26 +102,55 @@ router.post("/", async (req, res) => {
       bet_details: {},
     };
 
-    // Atomic update: balance + turnoverCompleted + gameHistory
-    const updateQuery = {
+    // Update User
+    const userUpdate = {
       $set: { balance: newBalance },
       $push: { gameHistory: gameRecord },
     };
 
-    // Only increase turnover if it's a BET
     if (turnoverIncrement > 0) {
-      updateQuery.$inc = { turnoverCompleted: turnoverIncrement };
+      userUpdate.$inc = { turnoverCompleted: turnoverIncrement };
     }
 
-    await User.findByIdAndUpdate(player._id, updateQuery, { session });
+    await User.findByIdAndUpdate(player._id, userUpdate);
 
-    await session.commitTransaction();
+    // Update DepositTurnover (প্রতি BET/SETTLE-এর amount দিয়ে)
+    if (turnoverIncrement > 0) {
+      // সবচেয়ে পুরোনো active turnover খুঁজে আপডেট করা (FIFO)
+      const activeTurnover = await DepositTurnover.findOne({
+        user: player._id,
+        status: "active",
+      }).sort({ activatedAt: 1 }); // oldest first
+
+      if (activeTurnover) {
+        const newCompleted =
+          activeTurnover.completedTurnover + turnoverIncrement;
+        const newRemaining = Math.max(
+          0,
+          activeTurnover.requiredTurnover - newCompleted,
+        );
+
+        await DepositTurnover.findByIdAndUpdate(activeTurnover._id, {
+          $set: {
+            completedTurnover: newCompleted,
+            remainingTurnover: newRemaining,
+            status: newRemaining <= 0 ? "completed" : "active",
+            completedAt: newRemaining <= 0 ? new Date() : undefined,
+          },
+        });
+
+        console.log(
+          `Turnover updated → Deposit: ${activeTurnover.depositRequest}, ` +
+            `Added: ${turnoverIncrement}, Completed: ${newCompleted}, Remaining: ${newRemaining}`,
+        );
+      }
+    }
 
     return res.json({
       success: true,
       message: "Processed successfully",
       data: {
-        phone: player.phone,
+        username: player.username,
         new_balance: newBalance,
         change: balanceChange,
         turnoverIncrement,
@@ -148,16 +158,12 @@ router.post("/", async (req, res) => {
       },
     });
   } catch (err) {
-    await session.abortTransaction();
-
-    console.error("Callback error:", err);
+    console.error("Callback error:", err.message);
     return res.status(500).json({
       success: false,
       message: "Server error",
       error: process.env.NODE_ENV === "development" ? err.message : undefined,
     });
-  } finally {
-    session.endSession();
   }
 });
 

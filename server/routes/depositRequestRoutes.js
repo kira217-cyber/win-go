@@ -4,6 +4,7 @@ import mongoose from "mongoose";
 import DepositRequest from "../models/DepositRequest.js";
 import DepositMethod from "../models/DepositMethod.js";
 import User from "../models/Users.js";
+import DepositTurnover from "../models/DepositTurnover.js";
 
 const router = express.Router();
 
@@ -209,70 +210,75 @@ router.get("/deposit-history/:id", async (req, res) => {
   }
 });
 
-// PUT /api/deposit-requests/:id/approve
-// routes/depositRequest.route.js (only the approve part updated — rest same)
+// PUT /:id/approve – ফাইনাল ভার্সন (তোমার চাহিদা অনুযায়ী)
 router.put("/:id/approve", async (req, res) => {
   try {
     const { note } = req.body;
 
-    // Find deposit request
-    const request = await DepositRequest.findById(req.params.id);
-    if (!request) {
-      return res.status(404).json({
-        success: false,
-        message: "Deposit request not found",
-      });
+    const deposit = await DepositRequest.findById(req.params.id);
+    if (!deposit) {
+      return res.status(404).json({ success: false, message: "Deposit request not found" });
     }
 
-    if (request.status !== "pending") {
-      return res.status(400).json({
-        success: false,
-        message: `This request is already ${request.status}`,
-      });
+    if (deposit.status !== "pending") {
+      return res.status(400).json({ success: false, message: `Already ${deposit.status}` });
     }
 
-    // Find user
-    const user = await User.findById(request.user);
+    const user = await User.findById(deposit.user);
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: "User not found",
-      });
+      return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    // Calculate total to add (principal + bonus)
-    const totalToAdd = request.amount + request.bonusAmount;
+    // মূল যোগ করার অ্যামাউন্ট (ব্যালেন্সে যাবে)
+    const totalToAdd = deposit.amount + deposit.bonusAmount;
 
-    // Update balance
-    user.balance = (user.balance || 0) + totalToAdd;
+    // Turnover হিসাব – বোনাস সহ
+    const totalBaseAmount = deposit.amount + deposit.bonusAmount; // 200 + 10 = 210
 
-    // Add turnover requirement (from deposit method multiplier)
-    user.turnoverTarget = (user.turnoverTarget || 0) + request.turnoverTargetAdded;
-
-    // Optional note
-    if (note?.trim()) {
-      request.note = note.trim();
+    // multiplier নেওয়া (DepositMethod থেকে সরাসরি নেওয়া ভালো, কিন্তু এখন deposit থেকে)
+    const method = await DepositMethod.findById(deposit.method);
+    if (!method) {
+      return res.status(404).json({ success: false, message: "Deposit method not found" });
     }
 
-    // Update status
-    request.status = "approved";
+    const turnoverMultiplier = method.turnoverMultiplier || 1;
 
-    // Save both
-    await user.save();
-    await request.save();
+    const requiredTurnover = totalBaseAmount * turnoverMultiplier; // 210 * 2 = 420
 
-    // Send response with updated info
+    // Turnover entry
+    const turnoverEntry = new DepositTurnover({
+      user: deposit.user,
+      depositRequest: deposit._id,
+      depositAmount: deposit.amount,
+      bonusAmount: deposit.bonusAmount,
+      totalBaseAmount: totalBaseAmount,
+      turnoverMultiplier: turnoverMultiplier,
+      requiredTurnover: requiredTurnover,          // এখন সঠিক 420
+      completedTurnover: 0,
+      remainingTurnover: requiredTurnover,
+      status: 'active',
+      activatedAt: new Date(),
+    });
+
+    // Atomic updates
+    await Promise.all([
+      user.updateOne({ $inc: { balance: totalToAdd } }),
+      deposit.updateOne({
+        $set: {
+          status: "approved",
+          ...(note?.trim() ? { note: note.trim() } : {}),
+        },
+      }),
+      turnoverEntry.save(),
+    ]);
+
     res.json({
       success: true,
       message: "Deposit approved successfully. Balance and turnover updated.",
       data: {
-        request,
-        user: {
-          balance: user.balance,
-          turnoverTarget: user.turnoverTarget,
-          turnoverCompleted: user.turnoverCompleted,
-          remainingTurnover: Math.max(0, user.turnoverTarget - user.turnoverCompleted),
-        },
+        deposit: await DepositRequest.findById(deposit._id),
+        userBalance: (user.balance || 0) + totalToAdd,
+        turnoverEntry,
       },
     });
   } catch (err) {
@@ -322,9 +328,6 @@ router.put("/:id/reject", async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
-
-
 
 
 export default router;

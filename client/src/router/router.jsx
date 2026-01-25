@@ -12,6 +12,7 @@ import Promotion from "../pages/Promotion/Promotion";
 import PromotionDetails from "../pages/PromotionDetails/PromotionDetails";
 import WithdrawHistory from "../pages/WithdrawHistory/WithdrawHistory";
 import DepositHistory from "../pages/DepositHistory/DepositHistory";
+import Turnover from "../pages/Turnover/Turnover";
 
 export const routes = createBrowserRouter([
   {
@@ -70,6 +71,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Withdraw />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "turnover-details",
+        element: (
+          <PrivateRoute>
+            <Turnover />
           </PrivateRoute>
         ),
       },

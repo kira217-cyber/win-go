@@ -4,6 +4,7 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/Users.js"; // ← সঠিক ইম্পোর্ট (User.js)
+import DepositTurnover from "../models/DepositTurnover.js";
 
 const router = express.Router();
 
@@ -159,6 +160,54 @@ router.post("/login", async (req, res) => {
       success: false,
       message: "সার্ভার এরর",
       error: error.message,
+    });
+  }
+});
+
+// নতুন যোগ করা route
+router.get("/my-turnovers", async (req, res) => {
+  try {
+    const { userId } = req.query;
+
+    if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({
+        success: false,
+        message: "Valid userId is required in query",
+      });
+    }
+
+    const turnovers = await DepositTurnover.find({ user: userId })
+      .populate({
+        path: "depositRequest",
+        select: "amount transactionId createdAt status method",
+        populate: {
+          path: "method",
+          select: "methodName image accountNumber", // যদি আরও ফিল্ড লাগে
+        },
+      })
+      .sort({ activatedAt: -1 })
+      .lean(); // performance এর জন্য lean() ভালো
+
+    const totalRequired = turnovers.reduce((sum, t) => sum + t.requiredTurnover, 0);
+    const totalCompleted = turnovers.reduce((sum, t) => sum + t.completedTurnover, 0);
+    const totalRemaining = Math.max(0, totalRequired - totalCompleted);
+
+    res.json({
+      success: true,
+      data: turnovers,
+      summary: {
+        totalRequired,
+        totalCompleted,
+        totalRemaining,
+        canWithdraw: totalRemaining <= 0,
+      },
+    });
+  } catch (err) {
+    console.error("My turnovers error:", err);
+    res.status(500).json({
+      success: false,
+      message: "Server error while fetching turnovers",
+      error: err.message,
     });
   }
 });
