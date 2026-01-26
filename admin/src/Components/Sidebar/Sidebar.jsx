@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { NavLink, Outlet } from "react-router";
+import { Link, NavLink, Outlet } from "react-router";
 import {
   FaHome,
   FaBell,
@@ -174,14 +174,14 @@ const Sidebar = () => {
                 <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-red-500 rounded-full ring-2 ring-red-600/40"></span>
               </button>
 
-              <button className="p-1 hover:bg-red-900/40 rounded-full transition-colors cursor-pointer">
+              <Link to="/profile" className="p-1 hover:bg-red-900/40 rounded-full transition-colors cursor-pointer">
                 <FaUserCircle className="text-3xl text-orange-200 hover:text-orange-100 transition-colors" />
-              </button>
+              </Link>
             </div>
           </div>
 
           {/* Scrollable content */}
-          <main className="flex-1 overflow-y-auto">
+          <main className="flex-1 overflow-y-auto  [scrollbar-width:none]">
             <div className="h-full">
               <div className="mt-18 md:mt-0">
                 <Outlet />

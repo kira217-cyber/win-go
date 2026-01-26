@@ -120,6 +120,65 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.get('/pending/count', async (req, res) => {
+  try {
+    const pendingCount = await WithdrawRequest.countDocuments({ status: 'pending' });
+
+    res.status(200).json({
+      success: true,
+      pendingWithdrawRequests: pendingCount,
+      message: 'Pending withdraw requests count fetched successfully',
+    });
+  } catch (error) {
+    console.error('Error counting pending withdraw requests:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while counting pending withdraw requests',
+      error: error.message,
+    });
+  }
+});
+
+
+
+// GET /api/withdraw-requests/total-approved-balance
+
+router.get('/total-approved-balance', async (req, res) => {
+  try {
+    const totalApproved = await WithdrawRequest.aggregate([
+      {
+        $match: { status: 'approved' },
+      },
+      {
+        $group: {
+          _id: null,
+          totalWithdrawBalance: { $sum: '$amount' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalWithdrawBalance: 1,
+        },
+      },
+    ]);
+
+    const result = totalApproved[0] || { totalWithdrawBalance: 0 };
+
+    res.status(200).json({
+      success: true,
+      totalWithdrawBalance: result.totalWithdrawBalance,
+      message: 'Total approved withdraw balance fetched successfully',
+    });
+  } catch (error) {
+    console.error('Error fetching total approved withdraw balance:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while calculating total withdraw balance',
+      error: error.message,
+    });
+  }
+});
 
 router.get("/withdraw-history/:id", async (req, res) => {
   try {

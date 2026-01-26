@@ -28,6 +28,27 @@ router.get("/active", async (req, res) => {
   }
 });
 
+
+// GET /api/games/count
+router.get('/count', async (req, res) => {
+  try {
+    const totalGames = await Game.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      totalGames,
+      message: 'Total number of games fetched successfully',
+    });
+  } catch (error) {
+    console.error('Error counting games:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while counting games',
+      error: error.message,
+    });
+  }
+});
+
 // POST new game
 router.post("/", upload.single("image"), async (req, res) => {
   try {

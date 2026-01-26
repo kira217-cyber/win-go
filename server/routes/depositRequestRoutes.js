@@ -118,6 +118,63 @@ router.get("/my-history", async (req, res) => {
   }
 });
 
+router.get('/pending/count', async (req, res) => {
+  try {
+    const pendingCount = await DepositRequest.countDocuments({ status: 'pending' });
+
+    res.status(200).json({
+      success: true,
+      pendingDepositRequests: pendingCount,
+      message: 'Pending deposit requests count fetched successfully',
+    });
+  } catch (error) {
+    console.error('Error counting pending deposit requests:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while counting pending deposit requests',
+      error: error.message,
+    });
+  }
+});
+
+// সফল (approved) সব ডিপোজিট রিকোয়েস্টের মোট পরিমাণ রিটার্ন করবে
+router.get('/total-approved-balance', async (req, res) => {
+  try {
+    const totalApproved = await DepositRequest.aggregate([
+      {
+        $match: { status: 'approved' },
+      },
+      {
+        $group: {
+          _id: null,
+          totalDepositBalance: { $sum: '$amount' },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          totalDepositBalance: 1,
+        },
+      },
+    ]);
+
+    const result = totalApproved[0] || { totalDepositBalance: 0 };
+
+    res.status(200).json({
+      success: true,
+      totalDepositBalance: result.totalDepositBalance,
+      message: 'Total approved deposit balance fetched successfully',
+    });
+  } catch (error) {
+    console.error('Error fetching total approved deposit balance:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while calculating total deposit balance',
+      error: error.message,
+    });
+  }
+});
+
 // GET /api/deposit-requests
 // Admin: Get all deposit requests with filters
 router.get("/", async (req, res) => {

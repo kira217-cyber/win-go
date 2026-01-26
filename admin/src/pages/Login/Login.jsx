@@ -5,7 +5,7 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router";
 import useAuth from "../../hook/useAuth";
-import { FaEye, FaEyeSlash } from "react-icons/fa"; // ← added these icons
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login = () => {
   const {
@@ -17,20 +17,40 @@ const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  // New state for password visibility
   const [showPassword, setShowPassword] = useState(false);
 
   const loginMutation = useMutation({
     mutationFn: async (formData) => {
       const response = await axios.post(
         `${import.meta.env.VITE_API_URL}/api/admin/login`,
-        formData,
+        formData
       );
       return response.data;
     },
 
     onSuccess: (data) => {
-      login({ email: data.user.email, id: data.user.id }, data.token);
+      // ──────────────────────────────────────────────
+      // Debug: always log the real response shape
+      console.log("Login success - full response:", data);
+
+      // Try different possible keys where user/admin info might be
+      const userInfo =
+        data.user ||
+        data.admin ||
+        data.data || // sometimes nested
+        (data.email && data.id ? data : null); // flat structure fallback
+
+      if (!userInfo || !userInfo.email || !userInfo.id) {
+        console.warn("No valid user info found in response", data);
+        toast.warn("লগইন সফল, কিন্তু প্রোফাইল লোড করতে সমস্যা হয়েছে।");
+      }
+
+      // Safely extract email & id
+      const email = userInfo?.email || "";
+      const id = userInfo?.id || userInfo?._id || "";
+
+      // Call your auth login function
+      login({ email, id }, data.token || data.accessToken);
 
       toast.success("লগইন সফল হয়েছে!", {
         position: "top-right",
@@ -40,14 +60,28 @@ const Login = () => {
       navigate("/");
     },
 
-    onError: (error) => {
-      const errorMessage =
-        error.response?.data?.message ||
-        "লগইন ব্যর্থ হয়েছে। ইমেইল বা পাসওয়ার্ড চেক করুন।";
+    onError: (err) => {
+      console.error("Login mutation failed:", err);
 
-      toast.error(errorMessage, {
+      let msg = "লগইন ব্যর্থ হয়েছে। পরে আবার চেষ্টা করুন।";
+
+      if (err.response?.data) {
+        const resData = err.response.data;
+        msg =
+          resData.message ||
+          resData.error ||
+          resData.msg ||
+          (typeof resData === "string" ? resData : msg);
+      } else if (err.message?.includes("Network Error")) {
+        msg = "সার্ভারের সাথে সংযোগ সমস্যা। ইন্টারনেট চেক করুন।";
+      } else if (err.code === "ECONNABORTED") {
+        msg = "সার্ভারের উত্তর দিতে সময় লাগছে। পরে চেষ্টা করুন।";
+      }
+
+      toast.error(msg, {
         position: "top-right",
-        autoClose: 5000,
+        autoClose: 5500,
+        theme: "dark",
       });
     },
   });
@@ -62,9 +96,7 @@ const Login = () => {
         {/* Logo / Title */}
         <div className="text-center mb-6">
           <div className="inline-block w-16 h-16 rounded-xl bg-gradient-to-br from-orange-600 to-red-600 flex items-center justify-center shadow-lg shadow-red-900/60 mb-4">
-            <span className="text-white font-black text-4xl">
-              W
-            </span>
+            <span className="text-white font-black text-4xl">W</span>
           </div>
           <h1 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
             WiN GO Admin
@@ -130,7 +162,6 @@ const Login = () => {
                 } text-orange-100 placeholder-red-100/50 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all pr-12`}
                 placeholder="*******"
               />
-              {/* Eye Icon - Toggle visibility */}
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
@@ -195,7 +226,7 @@ const Login = () => {
           </button>
         </form>
 
-        {/* Optional footer */}
+        {/* Footer */}
         <div className="mt-8 text-center text-sm text-orange-300/70">
           <p>যদি অ্যাকাউন্ট না থাকে তাহলে অ্যাডমিনের সাথে যোগাযোগ করুন</p>
         </div>

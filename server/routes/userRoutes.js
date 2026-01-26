@@ -164,6 +164,25 @@ router.post("/login", async (req, res) => {
   }
 });
 
+router.get('/count', async (req, res) => {
+  try {
+    const totalUsers = await User.countDocuments();
+
+    res.status(200).json({
+      success: true,
+      totalUsers,
+      message: 'Total number of users fetched successfully',
+    });
+  } catch (error) {
+    console.error('Error counting users:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Server error while counting users',
+      error: error.message,
+    });
+  }
+});
+
 // নতুন যোগ করা route
 router.get("/my-turnovers", async (req, res) => {
   try {
