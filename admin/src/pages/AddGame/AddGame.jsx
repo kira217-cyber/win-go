@@ -419,7 +419,7 @@ const AddGame = () => {
       {/* Edit Modal */}
       {showEditModal && editingGame && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-          <div className="bg-gradient-to-b from-red-950/90 to-black border border-red-800/60 rounded-2xl shadow-2xl shadow-red-950/70 w-full max-w-lg max-h-[90vh] overflow-y-auto">
+          <div className="bg-gradient-to-b from-red-950/90 to-black border border-red-800/60 rounded-2xl shadow-2xl shadow-red-950/70 w-full max-w-lg max-h-[90vh] overflow-y-auto [scrollbar-width:none]">
             <div className="p-6 border-b border-red-800/50 flex items-center justify-between sticky top-0 bg-gradient-to-b from-red-950/95 to-red-950/90 backdrop-blur-sm z-10">
               <h3 className="text-2xl font-semibold text-orange-400">
                 Edit Game
