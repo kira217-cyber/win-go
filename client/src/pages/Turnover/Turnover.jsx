@@ -57,7 +57,7 @@ const Turnover = () => {
         <div className="flex items-center gap-4 mb-8">
           <button
             onClick={() => navigate(-1)}
-            className="p-3 bg-gray-800/60 rounded-full hover:bg-gray-700 transition-colors"
+            className="p-3 cursor-pointer bg-gray-800/60 rounded-full hover:bg-gray-700 transition-colors"
           >
             <FaArrowLeft className="text-orange-400" />
           </button>

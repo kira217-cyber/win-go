@@ -73,7 +73,7 @@ const BottomNavbar = () => {
       initial={{ y: 50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
-      className="sticky bottom-0 z-50"
+      className="fixed bottom-0 z-50 w-full md:w-[60%] lg:w-[40%] xl:w-[30%]"
     >
       <div className="h-0" />
 

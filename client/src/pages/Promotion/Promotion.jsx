@@ -72,7 +72,7 @@ const Promotion = () => {
       </div>
 
       {/* Promotion Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-1  gap-6 max-w-7xl mx-auto">
+      <div className="grid grid-cols-1 md:grid-cols-1 gap-6 max-w-7xl mx-auto">
         {promotions.map((promo) => (
           <motion.div
             key={promo._id}
@@ -80,11 +80,11 @@ const Promotion = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
             whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
-            className="bg-gradient-to-b from-orange-900/50 via-red-900/40 to-black/60 border border-red-800/50 rounded-2xl overflow-hidden shadow-2xl shadow-red-900/30 hover:shadow-orange-900/40 transition-all duration-300"
+            className="bg-gradient-to-b from-orange-900/50 via-red-900/40 to-black/60 border border-red-800/50 rounded-md overflow-hidden shadow-2xl shadow-red-900/30 hover:shadow-orange-900/40 transition-all duration-300"
           >
             <Link to={`/promotion/${promo._id}`} className="block h-full">
               {/* Image */}
-              <div className="relative h-48 md:h-56 overflow-hidden">
+              <div className="relative h-40 overflow-hidden">
                 {promo.image ? (
                   <img
                     src={`${import.meta.env.VITE_API_URL}/${promo.image}`}

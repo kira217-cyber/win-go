@@ -12,7 +12,13 @@ import { useLanguage } from "../../context/LanguageProvider";
 import axios from "axios";
 
 const Navbar = () => {
-  const { user, loading: authLoading, balanceData, balanceLoading, refreshBalance } = useAuth();
+  const {
+    user,
+    loading: authLoading,
+    balanceData,
+    balanceLoading,
+    refreshBalance,
+  } = useAuth();
   const [langOpen, setLangOpen] = useState(false);
   const { language, changeLanguage } = useLanguage();
 
@@ -25,7 +31,7 @@ const Navbar = () => {
     const fetchSettings = async () => {
       try {
         const res = await axios.get(
-          `${import.meta.env.VITE_API_URL || "http://localhost:5007"}/api/navbar`
+          `${import.meta.env.VITE_API_URL || "http://localhost:5007"}/api/navbar`,
         );
         setSettings(res.data);
       } catch (err) {
@@ -41,7 +47,9 @@ const Navbar = () => {
   useEffect(() => {
     const fetchLogo = async () => {
       try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/logos`);
+        const res = await axios.get(
+          `${import.meta.env.VITE_API_URL}/api/logos`,
+        );
         setLogo(res.data.websiteLogo);
       } catch (err) {
         console.error("Failed to load logo settings:", err);
@@ -97,7 +105,7 @@ const Navbar = () => {
         {/* LEFT LOGO */}
         <Link to="/">
           <img
-            className="h-10 md:h-12 w-12 md:w-32"
+            className="h-10 md:h-12 w-32"
             src={`${import.meta.env.VITE_API_URL}/${logo}`}
             alt="Logo"
           />
@@ -188,30 +196,6 @@ const Navbar = () => {
                   </>
                 )}
               </div>
-
-              <Link to="/withdraw">
-                <button
-                  className="px-3 py-2 rounded-lg font-bold cursor-pointer"
-                  style={{
-                    backgroundColor: colors.withdrawBg,
-                    color: colors.withdrawText,
-                  }}
-                >
-                  <PiHandWithdrawBold size={22} />
-                </button>
-              </Link>
-
-              <Link to="/deposit">
-                <button
-                  className="px-3 py-2 rounded-lg font-bold cursor-pointer"
-                  style={{
-                    backgroundColor: colors.depositBg,
-                    color: colors.depositText,
-                  }}
-                >
-                  <PiHandDepositBold size={22} />
-                </button>
-              </Link>
             </>
           ) : (
             <>

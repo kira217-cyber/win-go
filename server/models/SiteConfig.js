@@ -12,7 +12,12 @@ const siteConfigSchema = new mongoose.Schema(
     faviconUrl: {
       type: String,
       required: true,
-      default: ' ', // fallback
+      default: '',
+    },
+    downloadLink: {
+      type: String,
+      default: '',
+      trim: true,
     },
     isActive: {
       type: Boolean,

@@ -15,9 +15,7 @@ const updateLogo = async (formData) => {
   const { data } = await axios.post(
     `${import.meta.env.VITE_API_URL}/api/logos`,
     formData,
-    {
-      headers: { "Content-Type": "multipart/form-data" },
-    },
+    { headers: { "Content-Type": "multipart/form-data" } },
   );
   return data;
 };
@@ -40,52 +38,30 @@ const LogoController = () => {
     mutationFn: updateLogo,
     onSuccess: () => {
       queryClient.invalidateQueries(["logos"]);
-      toast.success("Logo updated successfully!", {
-        position: "top-right",
-        autoClose: 3000,
-        theme: "dark",
-      });
+      toast.success("Image updated successfully!", { theme: "dark" });
     },
-    onError: () => {
-      toast.error("There was a problem updating the logo.", {
-        position: "top-right",
-        autoClose: 3000,
-        theme: "dark",
-      });
-    },
+    onError: () => toast.error("Failed to update image.", { theme: "dark" }),
   });
 
   const deleteMutation = useMutation({
     mutationFn: deleteLogo,
     onSuccess: () => {
       queryClient.invalidateQueries(["logos"]);
-      toast.success("Logo successfully deleted!", {
-        position: "top-right",
-        autoClose: 3000,
-        theme: "dark",
-      });
+      toast.success("Image deleted successfully!", { theme: "dark" });
     },
-    onError: () => {
-      toast.error("There was a problem deleting the logo.", {
-        position: "top-right",
-        autoClose: 3000,
-        theme: "dark",
-      });
-    },
+    onError: () => toast.error("Failed to delete image.", { theme: "dark" }),
   });
 
-  // States for modals
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedType, setSelectedType] = useState(null);
 
-  // Forms for each logo (but shared for modal)
   const { register, handleSubmit: formSubmit, reset, watch } = useForm();
 
   const openUploadModal = (type) => {
     setSelectedType(type);
     setUploadModalOpen(true);
-    reset(); // Reset form for new upload
+    reset();
   };
 
   const closeUploadModal = () => {
@@ -105,18 +81,14 @@ const LogoController = () => {
 
   const onSubmit = (data) => {
     const formData = new FormData();
-    const file = data[selectedType][0];
-    if (file) {
-      formData.append(selectedType, file);
-      mutation.mutate(formData);
-      closeUploadModal();
-    } else {
-      toast.warn("Please select an image.", {
-        position: "top-right",
-        autoClose: 3000,
-        theme: "dark",
-      });
+    const file = data[selectedType]?.[0];
+    if (!file) {
+      toast.warn("Please select an image first.");
+      return;
     }
+    formData.append(selectedType, file);
+    mutation.mutate(formData);
+    closeUploadModal();
   };
 
   const confirmDelete = () => {
@@ -139,201 +111,145 @@ const LogoController = () => {
     );
   }
 
+  const imageTypes = [
+    { key: "websiteLogo", label: "Website Logo" },
+    { key: "loginLogo", label: "Login Page Logo" },
+    { key: "registerImage", label: "Register Page Image" },
+    { key: "outerBackground", label: "Outer Background (RootLayout)" },
+    { key: "innerBackground", label: "Inner Background (Content Area)" },
+  ];
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-orange-950 via-red-950 to-black text-gray-100 p-6 md:p-10">
-      <h1 className="text-3xl font-bold text-orange-200 mb-8 text-center tracking-wide">
-        Logo Controller
+      <h1 className="text-3xl font-bold text-orange-200 mb-10 text-center tracking-wide">
+        Image & Logo Controller
       </h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-        {/* Website Logo Card */}
-        <div className="bg-gradient-to-b from-orange-900/50 via-red-900/40 to-black/50 border border-red-800/40 rounded-2xl shadow-2xl shadow-red-900/30 p-6 flex flex-col items-center">
-          <h2 className="text-2xl font-semibold text-orange-100 mb-4">
-            Website Logo
-          </h2>
-          {logos?.websiteLogo ? (
-            <img
-              src={`${import.meta.env.VITE_API_URL}/${logos.websiteLogo}`}
-              alt="Website Logo"
-              className="w-48 h-48 object-contain rounded-lg mb-4 border border-orange-500/50 shadow-md"
-            />
-          ) : (
-            <div className="w-48 h-48 flex items-center justify-center bg-black/50 rounded-lg mb-4 border border-red-800/60 text-orange-300 text-center">
-              <FaImage className="text-6xl mr-2" />
-              <span>No logo uploaded.</span>
-            </div>
-          )}
-          <div className="flex gap-4 mt-4">
-            <button
-              onClick={() => openUploadModal("websiteLogo")}
-              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 rounded-xl text-white font-medium transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
-            >
-              <FaUpload />
-              Upload/Update
-            </button>
-            {logos?.websiteLogo && (
-              <button
-                onClick={() => openDeleteModal("websiteLogo")}
-                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 rounded-xl text-white font-medium transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
-              >
-                <FaTrash />
-                Delete
-              </button>
-            )}
-          </div>
-        </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-7">
+        {imageTypes.map(({ key, label }) => (
+          <div
+            key={key}
+            className="bg-gradient-to-b from-orange-900/40 via-red-900/30 to-black/50 border border-red-800/50 rounded-2xl shadow-xl shadow-red-950/40 p-5 flex flex-col items-center"
+          >
+            <h2 className="text-xl font-semibold text-orange-100 mb-4 text-center">
+              {label}
+            </h2>
 
-        {/* Login Logo Card */}
-        <div className="bg-gradient-to-b from-orange-900/50 via-red-900/40 to-black/50 border border-red-800/40 rounded-2xl shadow-2xl shadow-red-900/30 p-6 flex flex-col items-center">
-          <h2 className="text-2xl font-semibold text-orange-100 mb-4">
-            Login Page Logo
-          </h2>
-          {logos?.loginLogo ? (
-            <img
-              src={`${import.meta.env.VITE_API_URL}/${logos.loginLogo}`}
-              alt="Login Logo"
-              className="w-48 h-48 object-contain rounded-lg mb-4 border border-orange-500/50 shadow-md"
-            />
-          ) : (
-            <div className="w-48 h-48 flex items-center justify-center bg-black/50 rounded-lg mb-4 border border-red-800/60 text-orange-300 text-center">
-              <FaImage className="text-6xl mr-2" />
-              <span>No logo uploaded.</span>
-            </div>
-          )}
-          <div className="flex gap-4 mt-4">
-            <button
-              onClick={() => openUploadModal("loginLogo")}
-              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 rounded-xl text-white font-medium transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
-            >
-              <FaUpload />
-              Upload/Update
-            </button>
-            {logos?.loginLogo && (
-              <button
-                onClick={() => openDeleteModal("loginLogo")}
-                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 rounded-xl text-white font-medium transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
-              >
-                <FaTrash />
-                Delete
-              </button>
+            {logos?.[key] ? (
+              <img
+                src={`${import.meta.env.VITE_API_URL}/${logos[key]}`}
+                alt={label}
+                className="w-44 h-44 object-cover rounded-lg mb-5 border border-orange-600/60 shadow-md"
+              />
+            ) : (
+              <div className="w-44 h-44 flex flex-col items-center justify-center bg-black/60 rounded-lg mb-5 border border-red-800/70 text-orange-300 text-center p-3">
+                <FaImage className="text-5xl mb-2" />
+                <span className="text-sm">No image uploaded</span>
+              </div>
             )}
-          </div>
-        </div>
 
-        {/* Register Image Card */}
-        <div className="bg-gradient-to-b from-orange-900/50 via-red-900/40 to-black/50 border border-red-800/40 rounded-2xl shadow-2xl shadow-red-900/30 p-6 flex flex-col items-center">
-          <h2 className="text-2xl font-semibold text-orange-100 mb-4">
-            Register Page Logo
-          </h2>
-          {logos?.registerImage ? (
-            <img
-              src={`${import.meta.env.VITE_API_URL}/${logos.registerImage}`}
-              alt="Register Image"
-              className="w-48 h-48 object-contain rounded-lg mb-4 border border-orange-500/50 shadow-md"
-            />
-          ) : (
-            <div className="w-48 h-48 flex items-center justify-center bg-black/50 rounded-lg mb-4 border border-red-800/60 text-orange-300 text-center">
-              <FaImage className="text-6xl mr-2" />
-              <span>No logo uploaded.</span>
-            </div>
-          )}
-          <div className="flex gap-4 mt-4">
-            <button
-              onClick={() => openUploadModal("registerImage")}
-              className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 rounded-xl text-white font-medium transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
-            >
-              <FaUpload />
-              Upload/Update
-            </button>
-            {logos?.registerImage && (
+            <div className="flex gap-3 mt-3">
               <button
-                onClick={() => openDeleteModal("registerImage")}
-                className="flex items-center gap-2 px-5 py-3 bg-gradient-to-r from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 rounded-xl text-white font-medium transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
+                onClick={() => openUploadModal(key)}
+                className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 rounded-lg text-white text-sm font-medium transition-all shadow-md border border-red-600/50"
               >
-                <FaTrash />
-                Delete
+                <FaUpload size={14} />
+                Upload
               </button>
-            )}
+
+              {logos?.[key] && (
+                <button
+                  onClick={() => openDeleteModal(key)}
+                  className="flex items-center gap-2 px-4 py-2.5 bg-gradient-to-r from-red-800 to-red-950 hover:from-red-700 hover:to-red-900 rounded-lg text-white text-sm font-medium transition-all shadow-md border border-red-700/50"
+                >
+                  <FaTrash size={14} />
+                  Delete
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        ))}
       </div>
 
       {/* Upload Modal */}
       {uploadModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="bg-gradient-to-b from-orange-950 via-red-950 to-black border border-red-800/40 rounded-2xl shadow-2xl shadow-red-900/50 p-8 w-full max-w-md mx-4"
+            className="bg-gradient-to-b from-orange-950 via-red-950 to-black border border-red-800/50 rounded-2xl shadow-2xl p-8 w-full max-w-md mx-5"
           >
             <div className="flex justify-between items-center mb-6">
               <h3 className="text-xl font-bold text-orange-100">
-                {selectedType === "websiteLogo" && "ওয়েবসাইট লোগো"}
-                {selectedType === "loginLogo" && "লগইন পেজ লোগো"}
-                {selectedType === "registerImage" && "রেজিস্টার পেজ ইমেজ"}{" "}
-                Upload/Update
+                Upload / Update —{" "}
+                {imageTypes.find((t) => t.key === selectedType)?.label}
               </h3>
-              <button
-                onClick={closeUploadModal}
-                className="text-orange-300 hover:text-orange-100 transition-colors cursor-pointer"
-              >
-                <FaTimes size={24} />
+              <button onClick={closeUploadModal}>
+                <FaTimes
+                  size={26}
+                  className="text-orange-300 hover:text-white"
+                />
               </button>
             </div>
+
             <form onSubmit={formSubmit(onSubmit)}>
               <input
                 type="file"
                 {...register(selectedType)}
                 accept="image/*"
-                className="w-full px-4 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all cursor-pointer mb-4"
+                className="w-full px-4 py-3 bg-black/60 border border-red-800/70 rounded-xl text-orange-100 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-red-900/60 file:text-orange-100 hover:file:bg-red-800/70 cursor-pointer mb-5"
               />
+
               {filePreview && (
-                <img
-                  src={URL.createObjectURL(filePreview)}
-                  alt="Preview"
-                  className="w-full h-32 object-contain rounded-lg mb-4 border border-orange-500/50"
-                />
+                <div className="mb-5">
+                  <img
+                    src={URL.createObjectURL(filePreview)}
+                    alt="Preview"
+                    className="w-full h-40 object-contain rounded-xl border border-orange-600/50 shadow-md"
+                  />
+                </div>
               )}
+
               <button
                 type="submit"
-                className="w-full flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 rounded-xl text-white font-medium transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
+                className="w-full flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 rounded-xl text-white font-medium transition-all shadow-lg"
               >
                 <FaUpload />
-                Submit
+                Upload Image
               </button>
             </form>
           </motion.div>
         </div>
       )}
 
-      {/* Delete Confirm Modal */}
+      {/* Delete Confirmation Modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center">
           <motion.div
-            initial={{ scale: 0.9, opacity: 0 }}
+            initial={{ scale: 0.85, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.3 }}
-            className="bg-gradient-to-b from-orange-950 via-red-950 to-black border border-red-800/40 rounded-2xl shadow-2xl shadow-red-900/50 p-8 w-full max-w-md mx-4 text-center"
+            className="bg-gradient-to-b from-orange-950 via-red-950 to-black border border-red-800/50 rounded-2xl shadow-2xl p-8 w-full max-w-md mx-5 text-center"
           >
             <h3 className="text-xl font-bold text-orange-100 mb-4">
-              Are you sure you want to delete this logo?
+              Delete Confirmation
             </h3>
-            <p className="text-orange-300 mb-6">
+            <p className="text-orange-300 mb-8">
+              Are you sure you want to delete this image?
+              <br />
               This action cannot be undone.
             </p>
-            <div className="flex gap-4 justify-center">
+            <div className="flex gap-5 justify-center">
               <button
                 onClick={confirmDelete}
-                className="px-6 py-3 bg-gradient-to-r from-red-700 to-red-900 hover:from-red-600 hover:to-red-800 rounded-xl text-white font-medium transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
+                className="px-7 py-3 bg-gradient-to-r from-red-700 to-red-950 hover:from-red-600 hover:to-red-900 rounded-xl text-white font-medium transition-all shadow-lg"
               >
-                Yes, delete.
+                Yes, Delete
               </button>
               <button
                 onClick={closeDeleteModal}
-                className="px-6 py-3 bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 rounded-xl text-white font-medium transition-all duration-300 shadow-lg shadow-red-900/50 border border-red-600/40 cursor-pointer"
+                className="px-7 py-3 bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 rounded-xl text-white font-medium transition-all shadow-lg"
               >
-                No, cancel
+                Cancel
               </button>
             </div>
           </motion.div>

@@ -189,7 +189,7 @@ const Withdraw = () => {
               onClick={() => navigate("/withdraw-history")}
               className="flex cursor-pointer items-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-700 to-indigo-700 hover:from-purple-600 hover:to-indigo-600 rounded-xl text-white font-medium transition-all shadow-lg shadow-purple-900/30"
             >
-              <FaHistory /> {isBangla ? "উত্তোলনের ইতিহাস" : "Withdrawal History"}
+              <FaHistory /> {isBangla ? "ইতিহাস" : "History"}
             </button>
           </div>
 
@@ -238,7 +238,7 @@ const Withdraw = () => {
                   {/* Turnover Details Button */}
                   <button
                     onClick={() => navigate("/turnover-details")}
-                    className="mt-4 px-6 py-3 md:py-4 bg-gradient-to-r from-orange-600 to-orange-800 hover:from-orange-500 hover:to-orange-700 text-white font-semibold text-base md:text-lg rounded-xl shadow-lg shadow-orange-900/50 transition-all flex items-center gap-2 mx-auto md:mx-0"
+                    className="mt-4 px-6 py-3 md:py-4 cursor-pointer bg-gradient-to-r from-orange-600 to-orange-800 hover:from-orange-500 hover:to-orange-700 text-white font-semibold text-base md:text-lg rounded-xl shadow-lg shadow-orange-900/50 transition-all flex items-center gap-2 mx-auto md:mx-0"
                   >
                     <FaHistory />
                     {isBangla ? "টার্নওভারের বিস্তারিত দেখুন" : "View Turnover Details"}

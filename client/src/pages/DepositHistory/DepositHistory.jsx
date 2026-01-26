@@ -95,7 +95,7 @@ const DepositHistory = () => {
   if (isError) {
     const errMsg = error?.response?.data?.message || error?.message || "Unknown error";
     return (
-      <div className="min-h-screen flex items-center justify-center text-red-400 text-xl p-8 text-center">
+      <div className="min-h-screen flex items-center justify-center text-red-400 text-xl px-4 py-8 text-center">
         <div className="max-w-md">
           <FaExclamationTriangle className="text-6xl mx-auto mb-6" />
           <h2 className="text-2xl font-bold mb-3">
@@ -108,20 +108,20 @@ const DepositHistory = () => {
   }
 
   return (
-    <div className="min-h-screen text-gray-100 py-10 px-4 sm:px-8 lg:px-4">
+    <div className="min-h-screen text-gray-100 py-10 px-4 sm:px-4 lg:px-4 mb-10">
       <div className="max-w-5xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
-          className="bg-gray-900/40 backdrop-blur-md rounded-2xl shadow-2xl shadow-red-950/40 p-6 md:p-10 border border-red-800/30"
+          className="bg-gray-900/40 backdrop-blur-md rounded-2xl shadow-2xl shadow-red-950/40 p-4 border border-red-800/30"
         >
           {/* Back Button + Header */}
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-6">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => navigate(-1)}
-                className="flex cursor-pointer items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-red-800/70 to-red-900/70 hover:from-red-700 hover:to-red-800 rounded-xl text-white font-medium transition-all shadow-md hover:shadow-lg"
+                className="flex cursor-pointer items-center gap-2 px-4 py-2 bg-gradient-to-r from-red-800/70 to-red-900/70 hover:from-red-700 hover:to-red-800 rounded-xl text-white font-medium transition-all shadow-md hover:shadow-lg"
               >
                 <FaArrowLeft />
                 {isBangla ? "ফিরে যান" : "Back"}

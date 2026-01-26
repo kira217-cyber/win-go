@@ -14,11 +14,27 @@ const PromotionModal = () => {
   const [promotions, setPromotions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isMobile, setIsMobile] = useState(false);
 
   const swiperRef = useRef(null);
 
-  // Show modal only once every 24 hours
+  // Check if device is mobile (screen width < 768px)
   useEffect(() => {
+    const checkIsMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkIsMobile();
+    window.addEventListener("resize", checkIsMobile);
+
+    return () => window.removeEventListener("resize", checkIsMobile);
+  }, []);
+
+  // Show modal only once every 24 hours — but only on mobile
+  useEffect(() => {
+    // Skip everything if not mobile
+    if (!isMobile) return;
+
     const lastShown = localStorage.getItem("promo_modal_time");
     const now = Date.now();
 
@@ -26,11 +42,11 @@ const PromotionModal = () => {
       setOpen(true);
       localStorage.setItem("promo_modal_time", now.toString());
     }
-  }, []);
+  }, [isMobile]);
 
-  // Fetch real promotions from your API when modal opens
+  // Fetch promotions only when modal is open and it's mobile
   useEffect(() => {
-    if (!open) return;
+    if (!open || !isMobile) return;
 
     const fetchPromotions = async () => {
       try {
@@ -41,11 +57,7 @@ const PromotionModal = () => {
           `${import.meta.env.VITE_API_URL}/api/promotions`
         );
 
-        // Assuming your API returns array of objects with at least:
-        // { _id, image, titleEn (or titleBn), ... }
         const data = response.data || [];
-
-        // Sort by createdAt descending (newest first) - already done in backend
         setPromotions(data);
       } catch (err) {
         console.error("Failed to load promotions:", err);
@@ -56,14 +68,18 @@ const PromotionModal = () => {
     };
 
     fetchPromotions();
-  }, [open]);
+  }, [open, isMobile]);
 
+  // Important: Do NOT render anything if not mobile
+  if (!isMobile) return null;
+
+  // Only mobile reaches here
   if (!open) return null;
 
   return (
     <AnimatePresence>
       <motion.div
-        className="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+        className="md:hidden fixed inset-0 z-50 flex items-center justify-center bg-black/60"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
@@ -108,7 +124,7 @@ const PromotionModal = () => {
               {/* Slider with real images */}
               <Swiper
                 modules={[Navigation]}
-                loop={promotions.length > 1} // loop only if more than 1 item
+                loop={promotions.length > 1}
                 navigation={{
                   prevEl: ".custom-prev",
                   nextEl: ".custom-next",
@@ -122,9 +138,9 @@ const PromotionModal = () => {
                   <SwiperSlide key={promo._id}>
                     <Link to={`/promotion/${promo._id}`}>
                       <img
-                        src={`${import.meta.env.VITE_API_URL}/${promo.image}`} // assuming image is stored as relative path
+                        src={`${import.meta.env.VITE_API_URL}/${promo.image}`}
                         alt={promo.titleEn || promo.titleBn || "Promotion"}
-                        className="w-full h-[160px] md:h-[220px] object-cover  cursor-pointer"
+                        className="w-full h-[160px] md:h-[220px] object-cover cursor-pointer"
                       />
                     </Link>
                   </SwiperSlide>
@@ -134,14 +150,10 @@ const PromotionModal = () => {
               {/* Custom Previous / Next Buttons */}
               {promotions.length > 1 && (
                 <div className="flex justify-between items-center gap-2 mt-4">
-                  <button
-                    className="custom-prev px-6 py-2 bg-amber-400 text-xl w-full rounded-2xl font-bold text-amber-900 cursor-pointer hover:bg-amber-300 transition"
-                  >
+                  <button className="custom-prev px-6 py-2 bg-amber-400 text-xl w-full rounded-2xl font-bold text-amber-900 cursor-pointer hover:bg-amber-300 transition">
                     Previous
                   </button>
-                  <button
-                    className="custom-next px-6 py-2 bg-amber-400 text-xl w-full rounded-2xl font-bold text-amber-900 cursor-pointer hover:bg-amber-300 transition"
-                  >
+                  <button className="custom-next px-6 py-2 bg-amber-400 text-xl w-full rounded-2xl font-bold text-amber-900 cursor-pointer hover:bg-amber-300 transition">
                     Next
                   </button>
                 </div>

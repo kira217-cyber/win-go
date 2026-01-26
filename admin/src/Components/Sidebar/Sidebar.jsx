@@ -53,11 +53,6 @@ const Sidebar = () => {
   const menuItems = [
     { to: "/", icon: <FaHome />, text: "Dashboard", end: true },
     { to: "/all-user", icon: <FaUsers />, text: "All-User" },
-    {
-      to: "/add-game-provider",
-      icon: <BiCategoryAlt />,
-      text: "Add Game Provider",
-    },
     { to: "/add-game", icon: <IoAppsSharp />, text: "Add Game" },
     { to: "/add-promotion", icon: <IoAppsSharp />, text: "Promotion Game" },
   ];
@@ -186,9 +181,9 @@ const Sidebar = () => {
           </div>
 
           {/* Scrollable content */}
-          <main className="flex-1 overflow-y-auto p-4 md:p-6">
+          <main className="flex-1 overflow-y-auto">
             <div className="h-full">
-              <div className="p-5 md:p-6">
+              <div className="mt-18 md:mt-0">
                 <Outlet />
               </div>
             </div>

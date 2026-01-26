@@ -81,7 +81,7 @@ const Login = () => {
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="w-full max-w-md bg-black/40 backdrop-blur-sm border border-red-800/40 rounded-2xl shadow-2xl p-8 md:p-10">
         <div className="text-center mb-8">
-          <div className="inline-block w-22 h-22 rounded-xl flex items-center justify-center shadow-lg shadow-red-900/60 mb-4">
+          <div className="inline-block rounded-xl flex items-center justify-center shadow-lg shadow-red-900/60 mb-4">
             <img src={`${import.meta.env.VITE_API_URL}/${logo}`} alt="Logo" />
           </div>
           <p className="text-orange-300/80 mt-1">{texts.title}</p>

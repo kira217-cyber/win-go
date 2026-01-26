@@ -49,7 +49,7 @@ const Slider = () => {
             disableOnInteraction: false,
           }}
           pagination={{ clickable: true }}
-          className="w-full h-44 rounded-lg overflow-hidden border-4 border-green-500"
+          className="w-full h-44 rounded-lg overflow-hidden border-4 border-white"
         >
           <SwiperSlide>
             <SkeletonSlide />
@@ -91,7 +91,7 @@ const Slider = () => {
         pagination={{
           clickable: true,
         }}
-        className="w-full h-44 rounded-lg overflow-hidden border-4 border-green-500"
+        className="w-full h-44 rounded-lg overflow-hidden border-2 border-white"
       >
         {slides.map((img, index) => (
           <SwiperSlide key={index}>

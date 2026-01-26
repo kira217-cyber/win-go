@@ -1,7 +1,8 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
-import { useLanguage } from "../../Context/LanguageProvider";
+import { useLanguage } from "../../context/LanguageProvider";
+
 
 const fetchFooterData = async () => {
   try {
@@ -58,7 +59,7 @@ const Footer = () => {
     : footer.englishSocialTitle;
 
   return (
-    <footer className="w-full py-6 px-4">
+    <footer className="w-full py-6 px-4 mb-12">
       <div className="max-w-4xl mx-auto text-center space-y-6">
         {/* LOGO */}
         <div className="flex justify-center items-center gap-2">

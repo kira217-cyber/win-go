@@ -6,13 +6,15 @@ import Games from "../../Components/Games/Games";
 import Provider from "../../Components/Provider/Provider";
 import PaymentMethod from "../../Components/PaymentMethod/PaymentMethod";
 import Footer from "../../Components/Footer/Footer";
+import Button from "../../Components/Button/Button";
 
 const Home = () => {
   return (
     <div>
       <Slider />
       <NoticeMarquee />
-      <Slider2 />
+      {/* <Slider2 /> */}
+      <Button />
       <Games />
       <Provider />
       <PaymentMethod />

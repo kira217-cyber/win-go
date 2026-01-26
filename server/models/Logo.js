@@ -1,18 +1,11 @@
 import mongoose from 'mongoose';
 
 const logoSchema = new mongoose.Schema({
-  websiteLogo: {
-    type: String,
-    default: null,
-  },
-  loginLogo: {
-    type: String,
-    default: null,
-  },
-  registerImage: {
-    type: String,
-    default: null,
-  },
+  websiteLogo:     { type: String, default: null },
+  loginLogo:       { type: String, default: null },
+  registerImage:   { type: String, default: null },
+  outerBackground: { type: String, default: null },
+  innerBackground: { type: String, default: null },
 }, { timestamps: true });
 
 const Logo = mongoose.models.Logo || mongoose.model('Logo', logoSchema);

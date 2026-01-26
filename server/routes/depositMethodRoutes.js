@@ -14,21 +14,52 @@ router.post(
     try {
       const data = { ...req.body };
 
-      // Parse nested / array fields sent as JSON strings from frontend
-      if (data.methodName) {
-        data.methodName = JSON.parse(data.methodName);
-      }
-      if (data.methodTypes) {
-        data.methodTypes = JSON.parse(data.methodTypes); // ← array of {en, bn}
-      }
-      if (data.bonusTitle) {
-        data.bonusTitle = JSON.parse(data.bonusTitle);
+      // ── 1. Parse JSON-string fields ───────────────────────────────
+      const jsonFields = ['methodName', 'methodTypes', 'bonusTitle'];
+
+      for (const field of jsonFields) {
+        if (data[field]) {
+          try {
+            data[field] = JSON.parse(data[field]);
+          } catch (parseErr) {
+            console.warn(`Invalid JSON in field ${field}:`, data[field]);
+            throw new Error(`Invalid JSON format in ${field}`);
+          }
+        }
       }
 
-      // Handle uploaded image
+      // ── 2. Convert numeric fields ─────────────────────────────────
+      const numberFields = [
+        'minDeposit',
+        'maxDeposit',
+        'bonusPercentage',
+        'turnoverMultiplier'
+      ];
+
+      for (const field of numberFields) {
+        if (data[field] !== undefined && data[field] !== '') {
+          const num = Number(data[field]);
+          if (isNaN(num)) {
+            throw new Error(`${field} must be a valid number`);
+          }
+          data[field] = num;
+        }
+      }
+
+      // Optional: business rule - max >= min
+      if (data.minDeposit !== undefined && data.maxDeposit !== undefined) {
+        if (data.maxDeposit < data.minDeposit) {
+          throw new Error('Maximum deposit must be greater than or equal to minimum deposit');
+        }
+      }
+
+      // ── 3. Image handling ─────────────────────────────────────────
       if (req.file) {
         data.image = `/uploads/${req.file.filename}`;
       }
+
+      // Debug (remove in production)
+      // console.log('Creating deposit method with data:', data);
 
       const newMethod = new DepositMethod(data);
       await newMethod.save();
@@ -44,7 +75,7 @@ router.post(
       res.status(status).json({
         success: false,
         message: error.message || 'Failed to create deposit method',
-        error: error.name === 'ValidationError' ? error.errors : undefined,
+        errorDetails: error.name === 'ValidationError' ? error.errors : undefined,
       });
     }
   }
@@ -114,25 +145,61 @@ router.put(
     try {
       const data = { ...req.body };
 
-      // Parse nested / array fields
-      if (data.methodName) {
-        data.methodName = JSON.parse(data.methodName);
-      }
-      if (data.methodTypes) {
-        data.methodTypes = JSON.parse(data.methodTypes); // ← important
-      }
-      if (data.bonusTitle) {
-        data.bonusTitle = JSON.parse(data.bonusTitle);
+      // ── 1. Parse JSON-string fields ───────────────────────────────
+      const jsonFields = ['methodName', 'methodTypes', 'bonusTitle'];
+
+      for (const field of jsonFields) {
+        if (data[field]) {
+          try {
+            data[field] = JSON.parse(data[field]);
+          } catch (parseErr) {
+            console.warn(`Invalid JSON in field ${field}:`, data[field]);
+            throw new Error(`Invalid JSON format in ${field}`);
+          }
+        }
       }
 
+      // ── 2. Convert numeric fields ─────────────────────────────────
+      const numberFields = [
+        'minDeposit',
+        'maxDeposit',
+        'bonusPercentage',
+        'turnoverMultiplier'
+      ];
+
+      for (const field of numberFields) {
+        if (data[field] !== undefined && data[field] !== '') {
+          const num = Number(data[field]);
+          if (isNaN(num)) {
+            throw new Error(`${field} must be a valid number`);
+          }
+          data[field] = num;
+        }
+      }
+
+      // Optional: business rule - max >= min (only if both are sent)
+      if (data.minDeposit !== undefined && data.maxDeposit !== undefined) {
+        if (data.maxDeposit < data.minDeposit) {
+          throw new Error('Maximum deposit must be greater than or equal to minimum deposit');
+        }
+      }
+
+      // ── 3. Image replacement (only if new file is uploaded) ───────
       if (req.file) {
         data.image = `/uploads/${req.file.filename}`;
       }
 
+      // Debug (remove in production)
+      // console.log('Updating deposit method with data:', data);
+
       const updatedMethod = await DepositMethod.findByIdAndUpdate(
         req.params.id,
         data,
-        { new: true, runValidators: true, lean: true }
+        { 
+          new: true, 
+          runValidators: true 
+          // lean: true → removed intentionally (helps with proper type casting)
+        }
       );
 
       if (!updatedMethod) {
@@ -153,7 +220,7 @@ router.put(
       res.status(status).json({
         success: false,
         message: error.message || 'Failed to update deposit method',
-        error: error.name === 'ValidationError' ? error.errors : undefined,
+        errorDetails: error.name === 'ValidationError' ? error.errors : undefined,
       });
     }
   }

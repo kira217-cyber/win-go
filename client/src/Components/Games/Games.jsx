@@ -178,7 +178,7 @@ const Games = () => {
           <div
             key={game._id}
             onClick={() => handleGameClick(game)}
-            className="relative auto-shine shine-animate overflow-hidden border-2 border-green-500 shadow-lg cursor-pointer group"
+            className="relative auto-shine shine-animate overflow-hidden border-2 border-white shadow-lg cursor-pointer group"
           >
             <img
               src={`${import.meta.env.VITE_API_URL}${game.image}`}
@@ -214,32 +214,34 @@ const Games = () => {
       )}
 
       {/* Game Iframe Modal */}
+      {/* Game Iframe Modal */}
       {showGameModal && gameUrl && (
-        <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50">
-          <div className="relative w-full max-w-4xl h-[90vh] bg-white rounded-lg overflow-hidden">
-            <button
-              onClick={() => {
-                setShowGameModal(false);
-                setGameUrl(null);
-              }}
-              className="absolute top-4 right-4 z-10 text-white bg-red-600 hover:bg-red-700 p-2 rounded-full cursor-pointer"
-            >
-              <FaTimes size={20} />
-            </button>
+        <div className="fixed inset-0 bg-black z-[9999]">
+          {/* Close Button */}
+          <button
+            onClick={() => {
+              setShowGameModal(false);
+              setGameUrl(null);
+            }}
+            className="fixed top-4 right-4 z-[10000] text-white bg-red-600 hover:bg-red-700 p-3 rounded-full cursor-pointer shadow-lg"
+          >
+            <FaTimes size={22} />
+          </button>
 
-            {playGameMutation.isPending ? (
-              <div className="flex items-center justify-center h-full">
-                <FaSpinner className="animate-spin text-4xl text-gray-500" />
-              </div>
-            ) : (
-              <iframe
-                src={gameUrl}
-                className="w-full h-full border-0"
-                title="Game"
-                allowFullScreen
-              />
-            )}
-          </div>
+          {/* Loader */}
+          {playGameMutation.isPending ? (
+            <div className="flex items-center justify-center w-full h-full">
+              <FaSpinner className="animate-spin text-5xl text-white" />
+            </div>
+          ) : (
+            <iframe
+              src={gameUrl}
+              title="Game"
+              className="w-full h-full border-0"
+              allow="fullscreen"
+              allowFullScreen
+            />
+          )}
         </div>
       )}
     </div>

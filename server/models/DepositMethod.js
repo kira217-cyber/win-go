@@ -11,12 +11,20 @@ const depositMethodSchema = new mongoose.Schema(
       trim: true,
       default: "",
     },
-    methodTypes: [
-      {
-        en: { type: String, trim: true },
-        bn: { type: String, trim: true },
-      },
-    ],
+    methodTypes: {
+      en: { type: String, trim: true, default: "" },
+      bn: { type: String, trim: true, default: "" },
+    },
+    minDeposit: {
+      type: Number,
+      default: 100,
+      min: 1,
+    },
+    maxDeposit: {
+      type: Number,
+      default: 5000,
+      min: 1,
+    },
     image: {
       type: String,
       default: "",
