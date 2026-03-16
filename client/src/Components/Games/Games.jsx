@@ -76,7 +76,7 @@ const Games = () => {
     mutationFn: ({ gameID }) =>
       axios.post(`${import.meta.env.VITE_API_URL}/api/games/playgame`, {
         gameID, // ← এখানে gameID পাঠানো হচ্ছে
-        username: user.username,
+        username: user.phone,
         money: user.balance,
       }),
     onSuccess: (response) => {
@@ -104,7 +104,7 @@ const Games = () => {
       return;
     }
 
-    if (!user?.username || user.balance === undefined) {
+    if (!user?.phone || user.balance === undefined) {
       toast.error(
         isBangla ? "ব্যবহারকারী তথ্য পাওয়া যায়নি" : "User data not found",
       );
