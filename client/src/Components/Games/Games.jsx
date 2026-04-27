@@ -5,14 +5,15 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import axios from "axios";
 import useAuth from "../../hook/useAuth";
 import { toast } from "react-toastify";
-import { FaTimes, FaSpinner } from "react-icons/fa";
+import { FaTimes } from "react-icons/fa";
+import Loading from "../../components/Loading/Loading";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 const fetchActiveGames = async () => {
   try {
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/games/active`,
-    );
-    return data;
+    const { data } = await axios.get(`${API_URL}/api/games/active`);
+    return Array.isArray(data) ? data : data?.data || [];
   } catch (error) {
     console.error("Failed to fetch active games:", error);
     return [];
@@ -21,13 +22,12 @@ const fetchActiveGames = async () => {
 
 const fetchTheme = async () => {
   try {
-    const { data } = await axios.get(
-      `${import.meta.env.VITE_API_URL}/api/theme-settings`,
-    );
+    const { data } = await axios.get(`${API_URL}/api/theme-settings`);
     return data;
-  } catch (error) {
+  } catch {
     return {
       gradientFrom: "#f97316",
+      gradientVia: "#ef4444",
       gradientTo: "#dc2626",
       textColor: "#ffffff",
     };
@@ -36,34 +36,37 @@ const fetchTheme = async () => {
 
 const fetchProfile = async (userId) => {
   if (!userId) throw new Error("User not logged in");
-  const { data } = await axios.get(
-    `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
-  );
-  return data;
+
+  const { data } = await axios.get(`${API_URL}/api/user/${userId}`);
+  return data?.data || data;
+};
+
+const getImageUrl = (image) => {
+  if (!image) return "";
+  if (String(image).startsWith("http")) return image;
+  return `${API_URL}${image}`;
 };
 
 const Games = () => {
   const { isBangla } = useLanguage();
   const { userId } = useAuth();
+
   const [showMore, setShowMore] = useState(false);
   const [showGameModal, setShowGameModal] = useState(false);
-  const [gameUrl, setGameUrl] = useState(null);
+  const [gameUrl, setGameUrl] = useState("");
 
-  // Theme
   const { data: theme } = useQuery({
     queryKey: ["theme-settings"],
     queryFn: fetchTheme,
     staleTime: 10 * 60 * 1000,
   });
 
-  // Active Games
   const { data: games = [], isLoading: gamesLoading } = useQuery({
     queryKey: ["active-games"],
     queryFn: fetchActiveGames,
     staleTime: 5 * 60 * 1000,
   });
 
-  // User Profile
   const { data: user, isLoading: userLoading } = useQuery({
     queryKey: ["user-profile", userId],
     queryFn: () => fetchProfile(userId),
@@ -71,67 +74,91 @@ const Games = () => {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Play Game Mutation
   const playGameMutation = useMutation({
-    mutationFn: ({ gameID }) =>
-      axios.post(`${import.meta.env.VITE_API_URL}/api/games/playgame`, {
-        gameID, // ← এখানে gameID পাঠানো হচ্ছে
-        username: user.phone,
-        money: user.balance,
-      }),
-    onSuccess: (response) => {
-      const url = response.data.gameUrl;
-      if (url) {
-        setGameUrl(url);
-        setShowGameModal(true);
-      } else {
-        toast.error("No game URL received");
-      }
+    mutationFn: async ({ gameID }) => {
+      const { data } = await axios.post(`${API_URL}/api/games/playgame`, {
+        gameID,
+        username: user?.username || user?.userId,
+        money: Number(user?.balance || 0),
+      });
+
+      return data;
     },
+
+    onSuccess: (data) => {
+      const url = data?.gameUrl || data?.url || data?.data?.gameUrl;
+
+      if (!url) {
+        toast.error(
+          isBangla ? "Game URL পাওয়া যায়নি" : "No game URL received",
+        );
+        return;
+      }
+
+      setGameUrl(url);
+      setShowGameModal(true);
+    },
+
     onError: (err) => {
-      toast.error(err.response?.data?.message || "Failed to start game");
+      toast.error(
+        err?.response?.data?.message ||
+          (isBangla ? "গেম চালু করা যায়নি" : "Failed to start game"),
+      );
     },
   });
 
   const handleGameClick = (game) => {
+    if (playGameMutation.isPending) return;
+
     if (!userId) {
       toast.error(isBangla ? "খেলতে লগইন করুন" : "Please login to play");
       return;
     }
 
     if (userLoading) {
-      toast.info(isBangla ? "লোড হচ্ছে..." : "Loading user data...");
+      toast.info(isBangla ? "ইউজার তথ্য লোড হচ্ছে..." : "Loading user data...");
       return;
     }
 
-    if (!user?.phone || user.balance === undefined) {
+    if (!user?.username && !user?.userId) {
       toast.error(
         isBangla ? "ব্যবহারকারী তথ্য পাওয়া যায়নি" : "User data not found",
       );
       return;
     }
 
-    // এখানে আপনার ডাটাবেসের ফিল্ড অনুযায়ী game.gameId ব্যবহার করা হচ্ছে
-    playGameMutation.mutate({ gameID: game.gameId });
+    const gameID = game?.gameId || game?._id;
+
+    if (!gameID) {
+      toast.error(isBangla ? "Game ID পাওয়া যায়নি" : "Game ID not found");
+      return;
+    }
+
+    playGameMutation.mutate({ gameID });
+  };
+
+  const closeGameModal = () => {
+    setShowGameModal(false);
+    setGameUrl("");
   };
 
   const sectionTitle = isBangla ? "সেরা গেমস খেলুন" : "Play the Best Games";
   const buttonText = isBangla ? "আরও দেখুন" : "See More";
 
   const gradientStyle = {
-    background: `linear-gradient(to right, ${theme?.gradientFrom}, ${theme?.gradientVia}, ${theme?.gradientTo})`,
+    background: `linear-gradient(to right, ${
+      theme?.gradientFrom || "#f97316"
+    }, ${theme?.gradientVia || "#ef4444"}, ${theme?.gradientTo || "#dc2626"})`,
     color: theme?.textColor || "#fff",
   };
 
   if (gamesLoading) {
     return (
-      <div className="w-full px-3 py-6 text-center text-gray-400">
-        Loading games...
-      </div>
+      <Loading open text={isBangla ? "লোড হচ্ছে..." : "Loading games..."} />
     );
   }
 
-  if (games.length === 0) {
+  if (!games.length) {
     return (
       <div className="w-full px-3 py-6 text-center text-gray-500">
         {isBangla
@@ -143,105 +170,117 @@ const Games = () => {
 
   return (
     <div className="w-full px-3 py-2">
-      {/* Shine Effect */}
+      <Loading
+        open={playGameMutation.isPending}
+        text={isBangla ? "গেম চালু হচ্ছে..." : "Starting game..."}
+      />
+
       <style>{`
-        .auto-shine { position: relative; overflow: hidden; border-radius: 12px; }
+        .auto-shine {
+          position: relative;
+          overflow: hidden;
+          border-radius: 12px;
+        }
+
         .shine-layer {
-          position: absolute; inset: 0;
-          background: linear-gradient(120deg, transparent 30%, rgba(255,255,255,0.9) 50%, transparent 70%);
+          position: absolute;
+          inset: 0;
+          background: linear-gradient(
+            120deg,
+            transparent 30%,
+            rgba(255,255,255,0.9) 50%,
+            transparent 70%
+          );
           transform: translateX(-150%);
           pointer-events: none;
         }
+
         .shine-animate .shine-layer {
           animation: shineSwipe 1.4s ease-out infinite;
         }
+
         @keyframes shineSwipe {
-          0% { transform: translateX(-150%) skewX(-15deg); }
-          100% { transform: translateX(150%) skewX(-15deg); }
+          0% {
+            transform: translateX(-150%) skewX(-15deg);
+          }
+          100% {
+            transform: translateX(150%) skewX(-15deg);
+          }
         }
       `}</style>
 
-      {/* SECTION TITLE */}
       <div className="mb-3">
         <h2
           style={gradientStyle}
-          className="flex items-center gap-2 w-2/3 md:w-1/2 text-md font-bold px-2 py-2 rounded"
+          className="flex w-2/3 items-center gap-2 rounded px-2 py-2 text-md font-bold md:w-1/2"
         >
           <IoGameController size={28} />
           {sectionTitle}
         </h2>
       </div>
 
-      {/* GAME GRID */}
       <div className="grid grid-cols-3 gap-2 md:gap-3">
         {games.slice(0, showMore ? games.length : 6).map((game) => (
-          <div
+          <button
+            type="button"
             key={game._id}
             onClick={() => handleGameClick(game)}
-            className="relative auto-shine shine-animate overflow-hidden border-2 border-white shadow-lg cursor-pointer group"
+            disabled={playGameMutation.isPending}
+            className="group relative auto-shine shine-animate cursor-pointer overflow-hidden border-2 border-white text-left shadow-lg disabled:cursor-not-allowed disabled:opacity-70"
           >
             <img
-              src={`${import.meta.env.VITE_API_URL}${game.image}`}
-              alt={game.title}
-              className="w-full h-40 md:h-52 object-cover transition-transform duration-300 group-hover:scale-105"
+              src={getImageUrl(game.image)}
+              alt={game.title || game.gameName || "Game"}
+              className="h-40 w-full object-cover transition-transform duration-300 group-hover:scale-105 md:h-52"
             />
-            <div className="shine-layer"></div>
-            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-              <span className="text-white text-xl md:text-2xl font-bold tracking-wide drop-shadow-lg">
+
+            <div className="shine-layer" />
+
+            <div className="absolute inset-0 flex items-center justify-center bg-black/50 opacity-0 transition-opacity duration-300 group-hover:opacity-100">
+              <span className="text-xl font-bold tracking-wide text-white drop-shadow-lg md:text-2xl">
                 {isBangla ? "খেলুন" : "Play"}
               </span>
             </div>
-            <div className="absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/60 to-transparent pointer-events-none">
-              <span className="text-white text-sm md:text-base font-bold pb-2 drop-shadow-md">
-                {game.title}
+
+            <div className="pointer-events-none absolute inset-0 flex items-end justify-center bg-gradient-to-t from-black/60 to-transparent">
+              <span className="pb-2 text-center text-sm font-bold text-white drop-shadow-md md:text-base">
+                {game.title || game.gameName}
               </span>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
-      {/* SEE MORE BUTTON */}
       {games.length > 6 && !showMore && (
-        <div className="flex justify-center mt-4">
+        <div className="mt-4 flex justify-center">
           <button
+            type="button"
             onClick={() => setShowMore(true)}
             style={gradientStyle}
-            className="px-6 py-2 cursor-pointer rounded-full font-semibold shadow-lg active:scale-95 transition-transform"
+            className="cursor-pointer rounded-full px-6 py-2 font-semibold shadow-lg transition-transform active:scale-95"
           >
             {buttonText}
           </button>
         </div>
       )}
 
-      {/* Game Iframe Modal */}
-      {/* Game Iframe Modal */}
       {showGameModal && gameUrl && (
-        <div className="fixed inset-0 bg-black z-[9999]">
-          {/* Close Button */}
+        <div className="fixed inset-0 z-[9999] bg-black">
           <button
-            onClick={() => {
-              setShowGameModal(false);
-              setGameUrl(null);
-            }}
-            className="fixed top-4 right-4 z-[10000] text-white bg-red-600 hover:bg-red-700 p-3 rounded-full cursor-pointer shadow-lg"
+            type="button"
+            onClick={closeGameModal}
+            className="fixed right-4 top-4 z-[10000] cursor-pointer rounded-full bg-red-600 p-3 text-white shadow-lg hover:bg-red-700"
           >
             <FaTimes size={22} />
           </button>
 
-          {/* Loader */}
-          {playGameMutation.isPending ? (
-            <div className="flex items-center justify-center w-full h-full">
-              <FaSpinner className="animate-spin text-5xl text-white" />
-            </div>
-          ) : (
-            <iframe
-              src={gameUrl}
-              title="Game"
-              className="w-full h-full border-0"
-              allow="fullscreen"
-              allowFullScreen
-            />
-          )}
+          <iframe
+            src={gameUrl}
+            title="Game"
+            className="h-full w-full border-0"
+            allow="fullscreen"
+            allowFullScreen
+          />
         </div>
       )}
     </div>

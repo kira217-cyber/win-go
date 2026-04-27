@@ -2,7 +2,9 @@ import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import { useLanguage } from "../../context/LanguageProvider";
-
+import { FaFacebookF, FaInstagram, FaTelegramPlane } from "react-icons/fa";
+import { FaXTwitter } from "react-icons/fa6";
+import { BsYoutube } from "react-icons/bs";
 
 const fetchFooterData = async () => {
   try {

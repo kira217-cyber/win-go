@@ -8,15 +8,32 @@ import path from 'path';
 const router = express.Router();
 
 // GET current active config (for frontend/client)
-router.get('/', async (req, res) => {
+// GET current active config (for frontend/client)
+router.get("/", async (req, res) => {
   try {
-    let config = await SiteConfig.findOne({ isActive: true });
+    let config = await SiteConfig.findOne({ isActive: true }).lean();
+
+    // ✅ config না থাকলে default active config create হবে
     if (!config) {
-      config = await new SiteConfig().save();
+      const createdConfig = await SiteConfig.create({
+        isActive: true,
+      });
+
+      config = createdConfig.toObject();
     }
-    res.json(config);
+
+    return res.status(200).json({
+      success: true,
+      data: config,
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Server error' });
+    console.error("Get site config error:", err);
+
+    return res.status(500).json({
+      success: false,
+      message: "Server error",
+      error: err.message,
+    });
   }
 });
 

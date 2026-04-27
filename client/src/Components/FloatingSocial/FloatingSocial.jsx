@@ -53,10 +53,10 @@ const FloatingSocial = () => {
             src={`${import.meta.env.VITE_API_URL}${item.imageUrl}`}
             alt={item.name}
             className="w-full h-full object-cover"
-            onError={(e) => {
-              e.target.src = "/fallback-icon.png"; // optional fallback
-              e.target.alt = "Icon not available";
-            }}
+            // onError={(e) => {
+            //   e.target.src = "/fallback-icon.png"; // optional fallback
+            //   e.target.alt = "Icon not available";
+            // }}
           />
         </a>
       ))}

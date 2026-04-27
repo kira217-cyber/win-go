@@ -28,22 +28,21 @@ router.get("/active", async (req, res) => {
   }
 });
 
-
 // GET /api/games/count
-router.get('/count', async (req, res) => {
+router.get("/count", async (req, res) => {
   try {
     const totalGames = await Game.countDocuments();
 
     res.status(200).json({
       success: true,
       totalGames,
-      message: 'Total number of games fetched successfully',
+      message: "Total number of games fetched successfully",
     });
   } catch (error) {
-    console.error('Error counting games:', error);
+    console.error("Error counting games:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error while counting games',
+      message: "Server error while counting games",
       error: error.message,
     });
   }
@@ -75,67 +74,121 @@ router.post("/", upload.single("image"), async (req, res) => {
   }
 });
 
-
-
+// play game
 router.post("/playgame", async (req, res) => {
   try {
     const { gameID, username, money } = req.body;
 
-    // Validation (uncommented and fixed)
-    if (!gameID || !username || !money) {
+    // ✅ Basic validation
+    if (!gameID || !username || money === undefined) {
       return res.status(400).json({
         success: false,
         message: "gameID, username, and money are required",
       });
     }
 
-    // Validate types (optional but good)
-    if (typeof money !== "number" || money <= 0) {
+    console.log("PlayGame Request Body:", req.body);
+
+    // ✅ Step 1: Get game details from Oracle by gameID
+    const oracleResponse = await axios.get(
+      `https://api.oraclegames.live/api/games/${gameID}`,
+      {
+        headers: {
+          "x-api-key": "ceeeba1c-892b-4571-b05f-2bcec5c4a44e",
+        },
+      },
+    );
+
+    const gameData = oracleResponse?.data?.data;
+
+    if (!gameData) {
+      return res.status(404).json({
+        success: false,
+        message: "Game not found from Oracle API",
+      });
+    }
+
+    // ✅ Extract required values
+    const provider_code = gameData?.provider?.provider_code;
+    const game_code = gameData?.game_code ?? 0;
+    const game_type = gameData?.game_type ?? 0;
+
+    if (!provider_code) {
+      return res.status(400).json({
+        success: false,
+        message: "provider_code not found for this game",
+      });
+    }
+
+    const parsedMoney = Number(money);
+
+    if (!Number.isFinite(parsedMoney) || parsedMoney <= 0) {
       return res.status(400).json({
         success: false,
         message: "Money must be a positive number",
       });
     }
 
-    console.log("PlayGame Request Body:", req.body);
+    // ✅ Convert to integer
+    const intMoney = parseInt(parsedMoney, 10);
 
-    const postData = {
-      home_url: "https://1winzo.com", // Fix if typo: perhaps "oracle" not "oracel"?
-      token: "e4acae0a556f8ca98977ec7a9510f924",
-      username: username + "45", // Append as per your code
-      money: money,
-      gameid: gameID,
+    const payload = {
+      username: `${username}45`,
+      money: intMoney,
+      provider_code,
+      game_code,
+      game_type,
     };
 
-    console.log("External API Post Data:", postData);
+    var globalPayload = payload;
+    
+    console.log("Launch Payload:", payload);
 
-    const response = await axios.post(
-      "https://crazybet99.com/getgameurl", // Your active URL
-      qs.stringify(postData),
+    // ✅ Step 3: Call new launch API
+    const launchResponse = await axios.post(
+      "https://crazybet99.com/getgameurl/v2",
+      qs.stringify(payload),
       {
         headers: {
           "Content-Type": "application/x-www-form-urlencoded",
-          "x-dstgame-key": postData.token,
+          "x-dstgame-key": "bb10373906ea00faa6717f10f8049c61",
         },
       },
     );
 
-    // Handle response (assuming it returns { url } or similar)
+    const responseData = launchResponse.data;
+
+    // ✅ Handle possible response shapes
     const gameUrl =
-      response.data.url || response.data.game_url || response.data;
+      responseData?.url ||
+      responseData?.game_url ||
+      responseData?.data ||
+      responseData;
 
     if (!gameUrl) {
-      throw new Error("No game URL received from external API");
+      return res.status(500).json({
+        success: false,
+        message: "No game URL received from launch API",
+        error: responseData,
+      });
     }
 
-    res.json({
+    return res.json({
       success: true,
       gameUrl,
+      meta: {
+        gameID,
+        provider_code,
+        game_code,
+        game_type,
+      },
     });
   } catch (error) {
     console.error("PlayGame API Error:", error.response?.data || error.message);
-    res.status(500).json({
+
+    return res.status(500).json({
       success: false,
+      globalPayload,
       message: "Failed to launch game",
       error: error.response?.data || error.message,
     });

@@ -250,7 +250,7 @@ router.get("/me", async (req, res) => {
     }
 
     const user = await User.findById(userId).select(
-      "firstName lastName phone balance turnoverTarget turnoverCompleted status role",
+      "firstName lastName phone username balance turnoverTarget turnoverCompleted status role",
     );
 
     if (!user) {
