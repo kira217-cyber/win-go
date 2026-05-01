@@ -49,7 +49,7 @@ const NavHeader = () => {
           {/* LEFT SECTION */}
           <div className="flex items-center gap-2 cursor-pointer">
             <h2 className="text-yellow-400 font-extrabold text-xl tracking-wide">
-              Win-go
+              BG444
             </h2>
           </div>
 

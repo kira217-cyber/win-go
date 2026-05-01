@@ -164,20 +164,20 @@ router.post("/login", async (req, res) => {
   }
 });
 
-router.get('/count', async (req, res) => {
+router.get("/count", async (req, res) => {
   try {
     const totalUsers = await User.countDocuments();
 
     res.status(200).json({
       success: true,
       totalUsers,
-      message: 'Total number of users fetched successfully',
+      message: "Total number of users fetched successfully",
     });
   } catch (error) {
-    console.error('Error counting users:', error);
+    console.error("Error counting users:", error);
     res.status(500).json({
       success: false,
-      message: 'Server error while counting users',
+      message: "Server error while counting users",
       error: error.message,
     });
   }
@@ -207,8 +207,14 @@ router.get("/my-turnovers", async (req, res) => {
       .sort({ activatedAt: -1 })
       .lean(); // performance এর জন্য lean() ভালো
 
-    const totalRequired = turnovers.reduce((sum, t) => sum + t.requiredTurnover, 0);
-    const totalCompleted = turnovers.reduce((sum, t) => sum + t.completedTurnover, 0);
+    const totalRequired = turnovers.reduce(
+      (sum, t) => sum + t.requiredTurnover,
+      0,
+    );
+    const totalCompleted = turnovers.reduce(
+      (sum, t) => sum + t.completedTurnover,
+      0,
+    );
     const totalRemaining = Math.max(0, totalRequired - totalCompleted);
 
     res.json({
@@ -279,6 +285,7 @@ router.get("/me", async (req, res) => {
         remainingTurnover,
         status: user.status,
         role: user.role,
+        referCode: user.referCode,
       },
     });
   } catch (err) {

@@ -8,11 +8,12 @@ import { motion } from "framer-motion";
 import {
   FaUser,
   FaPhone,
-  FaLock,
   FaEdit,
   FaSave,
   FaTimes,
   FaWallet,
+  FaCopy,
+  FaShareAlt,
 } from "react-icons/fa";
 
 import { useLanguage } from "../../context/LanguageProvider";
@@ -24,7 +25,7 @@ const fetchProfile = async (userId) => {
   const { data } = await axios.get(
     `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
   );
-  console.log(data)
+
   return data;
 };
 
@@ -35,13 +36,16 @@ const updateProfile = async ({ userId, ...data }) => {
     `${import.meta.env.VITE_API_URL}/api/user/${userId}`,
     data,
   );
+
   return updated;
 };
 
 const Profile = () => {
   const { isBangla } = useLanguage();
-  const { userId } = useAuth(); // ← using userId from your auth hook
+  const { userId } = useAuth();
   const queryClient = useQueryClient();
+
+  const [isEditing, setIsEditing] = useState(false);
 
   const {
     data: user,
@@ -50,14 +54,22 @@ const Profile = () => {
   } = useQuery({
     queryKey: ["user-profile", userId],
     queryFn: () => fetchProfile(userId),
-    enabled: !!userId, // only run query if userId exists
+    enabled: !!userId,
     retry: false,
   });
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
 
   const mutation = useMutation({
     mutationFn: (data) => updateProfile({ userId, ...data }),
     onSuccess: (updatedUser) => {
       queryClient.setQueryData(["user-profile", userId], updatedUser);
+
       toast.success(
         isBangla
           ? "প্রোফাইল সফলভাবে আপডেট হয়েছে"
@@ -68,35 +80,41 @@ const Profile = () => {
           theme: "dark",
         },
       );
+
       setIsEditing(false);
     },
     onError: (err) => {
       const msg =
         err.response?.data?.message ||
         (isBangla ? "আপডেট ব্যর্থ হয়েছে" : "Update failed");
+
       toast.error(msg, { theme: "dark" });
     },
   });
 
-  const [isEditing, setIsEditing] = useState(false);
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { errors },
-  } = useForm();
-
   const onSubmit = (formData) => {
     const payload = {};
 
-    if (formData.firstName?.trim())
+    if (formData.firstName?.trim()) {
       payload.firstName = formData.firstName.trim();
-    if (formData.lastName?.trim()) payload.lastName = formData.lastName.trim();
-    if (formData.phone?.trim()) payload.phone = formData.phone.trim();
-    if (formData.password?.trim()) payload.password = formData.password.trim();
+    }
+
+    if (formData.lastName?.trim()) {
+      payload.lastName = formData.lastName.trim();
+    }
+
+    if (formData.phone?.trim()) {
+      payload.phone = formData.phone.trim();
+    }
+
+    if (formData.password?.trim()) {
+      payload.password = formData.password.trim();
+    }
 
     if (Object.keys(payload).length === 0) {
-      toast.info(isBangla ? "কোনো পরিবর্তন নেই" : "No changes made");
+      toast.info(isBangla ? "কোনো পরিবর্তন নেই" : "No changes made", {
+        theme: "dark",
+      });
       setIsEditing(false);
       return;
     }
@@ -111,10 +129,10 @@ const Profile = () => {
       phone: user?.phone || "",
       password: "",
     });
+
     setIsEditing(true);
   };
 
-  // ─── Loading State ───
   if (isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -130,7 +148,6 @@ const Profile = () => {
     );
   }
 
-  // ─── Not logged in / No userId / Error State ───
   if (error || !userId || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center text-orange-200 text-xl p-6 text-center">
@@ -141,8 +158,29 @@ const Profile = () => {
     );
   }
 
+  const referralLink = user?.referCode
+    ? `${window.location.origin}/register?ref=${user.referCode}`
+    : "";
+
+  const copyReferralLink = async () => {
+    if (!referralLink) return;
+
+    try {
+      await navigator.clipboard.writeText(referralLink);
+
+      toast.success(
+        isBangla ? "রেফার লিংক কপি হয়েছে" : "Referral link copied",
+        { theme: "dark" },
+      );
+    } catch {
+      toast.error(isBangla ? "কপি করা যায়নি" : "Copy failed", {
+        theme: "dark",
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen text-gray-100 py-10 px-4 sm:px-8 lg:px-16">
+    <div className="min-h-screen text-gray-100 py-10 px-4 sm:px-8 lg:px-16 mb-10">
       <div className="max-w-4xl bg-gray-50/20 mx-auto rounded-xl">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
@@ -151,7 +189,7 @@ const Profile = () => {
           className="rounded-2xl shadow-2xl shadow-red-900/40 p-6 md:p-10"
         >
           {/* Header */}
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-10 gap-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 gap-4">
             <h1 className="text-3xl md:text-4xl font-bold text-orange-200">
               {isBangla ? "আমার প্রোফাইল" : "My Profile"}
             </h1>
@@ -166,29 +204,66 @@ const Profile = () => {
             )}
           </div>
 
+          {/* Referral Code */}
+          {user?.referCode && (
+            <div className="mb-8 bg-black/40 border border-orange-700/40 rounded-xl p-5">
+              <div className="flex items-center gap-3 mb-4">
+                <FaShareAlt className="text-2xl text-orange-400" />
+                <h3 className="text-lg font-semibold text-orange-100">
+                  {isBangla ? "আমার রেফার কোড" : "My Referral Code"}
+                </h3>
+              </div>
+
+              {/* <div className="mb-4">
+                <p className="text-sm text-orange-300 mb-1">
+                  {isBangla ? "রেফার কোড" : "Referral Code"}
+                </p>
+                <p className="text-2xl font-bold tracking-widest text-white">
+                  {user.referCode}
+                </p>
+              </div> */}
+
+              <div className="mb-4">
+                {/* <p className="text-sm text-orange-300 mb-1">
+                  {isBangla ? "রেজিস্টার লিংক" : "Refer Link"}
+                </p> */}
+                <p className="text-sm text-gray-200 break-all bg-black/40 rounded-lg px-3 py-2 border border-red-800/40">
+                  {referralLink}
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={copyReferralLink}
+                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 text-white font-medium cursor-pointer"
+              >
+                <FaCopy />
+                {isBangla ? "কপি করুন" : "Copy"}
+              </button>
+            </div>
+          )}
+
           {/* Content */}
           {isEditing ? (
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-                <div>
-                  <label className="block text-orange-300 mb-2 font-medium">
-                    {isBangla ? "প্রথম নাম" : "First Name"}
-                  </label>
-                  <input
-                    {...register("firstName")}
-                    className="w-full px-4 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
-                  />
-                </div>
+              <div>
+                <label className="block text-orange-300 mb-2 font-medium">
+                  {isBangla ? "প্রথম নাম" : "First Name"}
+                </label>
+                <input
+                  {...register("firstName")}
+                  className="w-full px-4 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
+                />
+              </div>
 
-                <div>
-                  <label className="block text-orange-300 mb-2 font-medium">
-                    {isBangla ? "শেষ নাম" : "Last Name"}
-                  </label>
-                  <input
-                    {...register("lastName")}
-                    className="w-full px-4 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
-                  />
-                </div>
+              <div>
+                <label className="block text-orange-300 mb-2 font-medium">
+                  {isBangla ? "শেষ নাম" : "Last Name"}
+                </label>
+                <input
+                  {...register("lastName")}
+                  className="w-full px-4 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
+                />
               </div>
 
               <div>
@@ -203,17 +278,13 @@ const Profile = () => {
 
               <div>
                 <label className="block text-orange-300 mb-2 font-medium">
-                  {isBangla
-                    ? "নতুন পাসওয়ার্ড "
-                    : "New Password "}
+                  {isBangla ? "নতুন পাসওয়ার্ড" : "New Password"}
                 </label>
                 <input
                   type="password"
                   {...register("password")}
                   placeholder={
-                    isBangla
-                      ? "নতুন পাসওয়ার্ড দিন "
-                      : "Enter new password "
+                    isBangla ? "নতুন পাসওয়ার্ড দিন" : "Enter new password"
                   }
                   className="w-full px-4 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400/50 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
                 />
@@ -222,10 +293,17 @@ const Profile = () => {
               <div className="flex flex-col sm:flex-row gap-4 mt-10">
                 <button
                   type="submit"
-                  disabled={mutation.isLoading}
+                  disabled={mutation.isPending}
                   className="flex-1 flex items-center justify-center gap-2 px-6 py-3.5 bg-gradient-to-r from-green-700 to-green-900 hover:from-green-600 hover:to-green-800 rounded-xl text-white font-medium transition-all shadow-lg shadow-green-900/30 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                 >
-                  <FaSave /> {isBangla ? "সেভ করুন" : "Save Changes"}
+                  <FaSave />
+                  {mutation.isPending
+                    ? isBangla
+                      ? "সেভ হচ্ছে..."
+                      : "Saving..."
+                    : isBangla
+                      ? "সেভ করুন"
+                      : "Save Changes"}
                 </button>
 
                 <button
@@ -238,8 +316,7 @@ const Profile = () => {
               </div>
             </form>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-6">
-              {/* Name */}
+            <div className="grid grid-cols-1 gap-6">
               <div className="bg-black/40 p-6 rounded-xl border border-red-800/40">
                 <div className="flex items-center gap-4 mb-4">
                   <FaUser className="text-4xl text-orange-400" />
@@ -252,7 +329,6 @@ const Profile = () => {
                 </p>
               </div>
 
-              {/* Phone */}
               <div className="bg-black/40 p-6 rounded-xl border border-red-800/40">
                 <div className="flex items-center gap-4 mb-4">
                   <FaPhone className="text-4xl text-orange-400" />
@@ -263,7 +339,6 @@ const Profile = () => {
                 <p className="text-2xl text-gray-200 break-all">{user.phone}</p>
               </div>
 
-              {/* Status */}
               <div className="bg-black/40 p-6 rounded-xl border border-red-800/40">
                 <h3 className="text-xl font-semibold text-orange-100 mb-4">
                   {isBangla ? "স্ট্যাটাস" : "Status"}
@@ -277,11 +352,10 @@ const Profile = () => {
                         : "bg-yellow-700/40 text-yellow-300 border border-yellow-600/50"
                   }`}
                 >
-                  {user.status.toUpperCase()}
+                  {String(user.status || "").toUpperCase()}
                 </span>
               </div>
 
-              {/* Balance */}
               <div className="bg-black/40 p-6 rounded-xl border border-red-800/40">
                 <div className="flex items-center gap-4 mb-4">
                   <FaWallet className="text-4xl text-green-400" />

@@ -1,6 +1,5 @@
 // models/User.js
 import mongoose from "mongoose";
-import gameHistorySchema from "./GameHistory.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -17,14 +16,17 @@ const userSchema = new mongoose.Schema(
       trim: true,
       minlength: [2, "Last name must be at least 2 characters"],
     },
+
     username: {
       type: String,
       required: true,
       unique: true,
       trim: true,
+      lowercase: true,
       minlength: 6,
       maxlength: 6,
       match: [/^[a-z]{6}$/, "Username must be exactly 6 lowercase letters"],
+      index: true,
     },
 
     phone: {
@@ -36,6 +38,7 @@ const userSchema = new mongoose.Schema(
         /^01[3-9]\d{8}$/,
         "Please enter a valid Bangladeshi phone number",
       ],
+      index: true,
     },
 
     password: {
@@ -49,6 +52,7 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
       required: true,
+      index: true,
     },
 
     referCode: {
@@ -56,12 +60,15 @@ const userSchema = new mongoose.Schema(
       unique: true,
       sparse: true,
       trim: true,
+      uppercase: true,
+      index: true,
     },
 
     referredBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       default: null,
+      index: true,
     },
 
     status: {
@@ -69,11 +76,10 @@ const userSchema = new mongoose.Schema(
       enum: ["active", "inactive", "blocked"],
       default: "active",
       required: true,
+      index: true,
     },
 
-    // ────────────────────────────────────────────────
-    // Money & Turnover fields (added here)
-    // ────────────────────────────────────────────────
+    // ───────────── Money & Turnover ─────────────
     balance: {
       type: Number,
       default: 0,
@@ -92,7 +98,7 @@ const userSchema = new mongoose.Schema(
       min: [0, "Turnover completed cannot be negative"],
     },
 
-    // Optional fields (useful for future)
+    // Optional
     lastBonusAdded: {
       type: Number,
       default: 0,
@@ -100,10 +106,9 @@ const userSchema = new mongoose.Schema(
 
     lastDepositDate: {
       type: Date,
+      default: null,
     },
 
-    // Existing fields
-    gameHistory: [gameHistorySchema],
 
     createdUsers: [
       {
@@ -113,7 +118,7 @@ const userSchema = new mongoose.Schema(
     ],
   },
   {
-    timestamps: true, // createdAt, updatedAt
+    timestamps: true,
   },
 );
 

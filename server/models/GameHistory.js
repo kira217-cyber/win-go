@@ -1,8 +1,16 @@
-// models/schemas/gameHistorySchema.js
+// models/GameHistory.js
 import mongoose from "mongoose";
 
 const gameHistorySchema = new mongoose.Schema(
   {
+    // ✅ NEW: user reference (most important change)
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
+
     provider_code: {
       type: String,
       required: true,
@@ -15,6 +23,7 @@ const gameHistorySchema = new mongoose.Schema(
       type: String,
       required: true,
       trim: true,
+      index: true,
     },
 
     bet_type: {
@@ -31,6 +40,7 @@ const gameHistorySchema = new mongoose.Schema(
 
     transaction_id: {
       type: String,
+      index: true,
     },
 
     round_id: {
@@ -48,23 +58,22 @@ const gameHistorySchema = new mongoose.Schema(
       trim: true,
     },
 
-    // FIXED & IMPROVED: Realistic statuses for betting platforms
     status: {
       type: String,
       enum: [
-        "pending",     // bet placed, waiting
-        "bet",         // ← added (your existing data uses this)
-        "settled",     // ← added (your existing data uses this)
+        "pending",
+        "bet",
+        "settled",
         "won",
         "lost",
-        "push",        // draw/tie
+        "push",
         "cancelled",
         "refunded",
-        "error",       // system or provider error
-        "void",        // voided bet
+        "error",
+        "void",
       ],
       default: "pending",
-      index: true,     // frequent filtering by status
+      index: true,
     },
 
     win_amount: {
@@ -84,21 +93,31 @@ const gameHistorySchema = new mongoose.Schema(
     flagged: {
       type: Boolean,
       default: false,
+      index: true,
     },
   },
   {
     timestamps: true,
-  }
+  },
 );
 
-// ─── Optimized Indexes ──────────────────────────────────────────────────────
+// ─── Index Optimization ─────────────────────────
 
-gameHistorySchema.index({ createdAt: -1 });                    // recent games
-gameHistorySchema.index({ status: 1, createdAt: -1 });         // filter by status + time
-gameHistorySchema.index({ provider_code: 1, status: 1 });      // per-provider status reports
-gameHistorySchema.index({ user: 1, createdAt: -1 });           // ← if you add user ref later
+// user ভিত্তিক history fetch (most important)
+gameHistorySchema.index({ user: 1, createdAt: -1 });
 
-// Optional compound index for money flow queries (uncomment if needed)
+// filter by status + user
+gameHistorySchema.index({ user: 1, status: 1, createdAt: -1 });
+
+// provider analytics
+gameHistorySchema.index({ provider_code: 1, status: 1 });
+
+// transaction lookup (duplicate prevent/useful)
+gameHistorySchema.index({ transaction_id: 1 });
+
+// optional money analytics
 // gameHistorySchema.index({ amount: 1, createdAt: -1 });
 
-export default gameHistorySchema;
+const GameHistory = mongoose.model("GameHistory", gameHistorySchema);
+
+export default GameHistory;
