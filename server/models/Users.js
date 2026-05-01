@@ -79,7 +79,6 @@ const userSchema = new mongoose.Schema(
       index: true,
     },
 
-    // ───────────── Money & Turnover ─────────────
     balance: {
       type: Number,
       default: 0,
@@ -98,7 +97,20 @@ const userSchema = new mongoose.Schema(
       min: [0, "Turnover completed cannot be negative"],
     },
 
-    // Optional
+    // ✅ Admin set করা global refer amount user এর মধ্যে থাকবে
+    referAmount: {
+      type: Number,
+      default: 0,
+      min: [0, "Refer amount cannot be negative"],
+    },
+
+    // ✅ অন্য কেউ এই user এর referCode দিয়ে register করলে এখানে add হবে
+    referAmountBalance: {
+      type: Number,
+      default: 0,
+      min: [0, "Refer amount balance cannot be negative"],
+    },
+
     lastBonusAdded: {
       type: Number,
       default: 0,
@@ -108,8 +120,6 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-
-
     createdUsers: [
       {
         type: mongoose.Schema.Types.ObjectId,

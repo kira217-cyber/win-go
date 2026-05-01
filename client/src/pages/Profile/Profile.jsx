@@ -18,6 +18,7 @@ import {
 
 import { useLanguage } from "../../context/LanguageProvider";
 import useAuth from "../../hook/useAuth";
+import { useNavigate } from "react-router";
 
 const fetchProfile = async (userId) => {
   if (!userId) throw new Error("User not logged in");
@@ -44,6 +45,7 @@ const Profile = () => {
   const { isBangla } = useLanguage();
   const { userId } = useAuth();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [isEditing, setIsEditing] = useState(false);
 
@@ -232,14 +234,25 @@ const Profile = () => {
                 </p>
               </div>
 
-              <button
-                type="button"
-                onClick={copyReferralLink}
-                className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 text-white font-medium cursor-pointer"
-              >
-                <FaCopy />
-                {isBangla ? "কপি করুন" : "Copy"}
-              </button>
+              <div className="flex flex-col sm:flex-row gap-3">
+                <button
+                  type="button"
+                  onClick={copyReferralLink}
+                  className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 text-white font-medium cursor-pointer"
+                >
+                  <FaCopy />
+                  {isBangla ? "কপি করুন" : "Copy"}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => navigate("/reedem-wallet")}
+                  className="flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-green-700 to-emerald-800 hover:from-green-600 hover:to-emerald-700 text-white font-medium cursor-pointer"
+                >
+                  <FaWallet />
+                  {isBangla ? "রিডিম ওয়ালেট" : "Reedem Wallet"}
+                </button>
+              </div>
             </div>
           )}
 

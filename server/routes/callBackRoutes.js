@@ -11,6 +11,55 @@ const num = (value) => {
   return Number.isFinite(n) ? n : 0;
 };
 
+const applyTurnoverProgress = async ({ userId, amount }) => {
+  let remainingAmount = num(amount);
+  if (remainingAmount <= 0) return;
+
+  const activeTurnovers = await DepositTurnover.find({
+    user: userId,
+    status: "active",
+  }).sort({ activatedAt: 1, createdAt: 1 });
+
+  for (const turnover of activeTurnovers) {
+    if (remainingAmount <= 0) break;
+
+    const requiredTurnover = num(turnover.requiredTurnover);
+    const completedTurnover = num(turnover.completedTurnover);
+    const currentRemaining = Math.max(0, requiredTurnover - completedTurnover);
+
+    if (currentRemaining <= 0) {
+      await DepositTurnover.findByIdAndUpdate(turnover._id, {
+        $set: {
+          remainingTurnover: 0,
+          status: "completed",
+          completedAt: turnover.completedAt || new Date(),
+        },
+      });
+      continue;
+    }
+
+    const addAmount = Math.min(currentRemaining, remainingAmount);
+    const newCompleted = completedTurnover + addAmount;
+    const newRemaining = Math.max(0, requiredTurnover - newCompleted);
+    const isCompleted = newRemaining <= 0;
+
+    await DepositTurnover.findByIdAndUpdate(turnover._id, {
+      $set: {
+        completedTurnover: newCompleted,
+        remainingTurnover: newRemaining,
+        status: isCompleted ? "completed" : "active",
+        ...(isCompleted ? { completedAt: new Date() } : {}),
+      },
+    });
+
+    remainingAmount -= addAmount;
+
+    console.log(
+      `Turnover updated → Source: ${turnover.sourceType || "deposit"}, Added: ${addAmount}, Completed: ${newCompleted}, Remaining: ${newRemaining}`,
+    );
+  }
+};
+
 router.post("/", async (req, res) => {
   try {
     const {
@@ -50,7 +99,6 @@ router.post("/", async (req, res) => {
     const player = await User.findOne({ username: cleanUsername });
 
     if (!player) {
-      console.log("User not found:", cleanUsername);
       return res.status(404).json({
         success: false,
         message: "User not found",
@@ -102,10 +150,11 @@ router.post("/", async (req, res) => {
       });
     }
 
+    // আপনার আগের logic same রাখা হলো: BET + SETTLE দুইটাই turnover count করবে
     const turnoverIncrement =
       cleanBetType === "BET" || cleanBetType === "SETTLE" ? amountFloat : 0;
 
-    const gameRecord = {
+    await GameHistory.create({
       user: player._id,
       provider_code,
       game_code: String(game_code),
@@ -122,9 +171,7 @@ router.post("/", async (req, res) => {
         account_id: account_id || null,
         rawUsername,
       },
-    };
-
-    await GameHistory.create(gameRecord);
+    });
 
     const userUpdate = {
       $set: {
@@ -143,32 +190,12 @@ router.post("/", async (req, res) => {
       runValidators: true,
     });
 
+    // ✅ Deposit turnover + Refer Redeem turnover দুইটাই এখান থেকে progress হবে
     if (turnoverIncrement > 0) {
-      const activeTurnover = await DepositTurnover.findOne({
-        user: player._id,
-        status: "active",
-      }).sort({ activatedAt: 1 });
-
-      if (activeTurnover) {
-        const oldCompleted = num(activeTurnover.completedTurnover);
-        const requiredTurnover = num(activeTurnover.requiredTurnover);
-
-        const newCompleted = oldCompleted + turnoverIncrement;
-        const newRemaining = Math.max(0, requiredTurnover - newCompleted);
-
-        await DepositTurnover.findByIdAndUpdate(activeTurnover._id, {
-          $set: {
-            completedTurnover: newCompleted,
-            remainingTurnover: newRemaining,
-            status: newRemaining <= 0 ? "completed" : "active",
-            ...(newRemaining <= 0 ? { completedAt: new Date() } : {}),
-          },
-        });
-
-        console.log(
-          `Turnover updated → Deposit: ${activeTurnover.depositRequest}, Added: ${turnoverIncrement}, Completed: ${newCompleted}, Remaining: ${newRemaining}`,
-        );
-      }
+      await applyTurnoverProgress({
+        userId: player._id,
+        amount: turnoverIncrement,
+      });
     }
 
     return res.json({

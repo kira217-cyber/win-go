@@ -28,6 +28,7 @@ import AddDeposit from "../pages/AddDeposit/AddDeposit";
 import AddWithdraw from "../pages/AddWithdraw/AddWithdraw";
 import DepositRequest from "../pages/DepositRequest/DepositRequest";
 import WithdrawRequest from "../pages/WithdrawRequest/WithdrawRequest";
+import ReferAndReedemUser from "../pages/ReferAndReedemUser/ReferAndReedemUser";
 
 export const routes = createBrowserRouter([
   {
@@ -80,6 +81,14 @@ export const routes = createBrowserRouter([
         ),
       },
       {
+        path: "/refer-redeem-user",
+        element: (
+          <PrivateRoute>
+            <ReferAndReedemUser />
+          </PrivateRoute>
+        ),
+      },
+      {
         path: "add-game",
         element: (
           <PrivateRoute>
@@ -119,7 +128,7 @@ export const routes = createBrowserRouter([
           </PrivateRoute>
         ),
       },
-       {
+      {
         path: "withdraw-request",
         element: (
           <PrivateRoute>

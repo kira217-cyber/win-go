@@ -24,6 +24,9 @@ import depositRequestRoutes from "./routes/depositRequestRoutes.js";
 import withdrawRequestRoutes from "./routes/withdrawRequestRoutes.js";
 import gameRoutes  from "./routes/gameRoutes.js"
 import refundCallbackRoutes from "./routes/refundCallbackRoutes.js";
+import referRedeemRoutes from "./routes/referRedeemRoutes.js";
+import referRedeemHistoryRoutes from "./routes/ReferRedeemHistoryRoutes.js";
+
 
 dotenv.config();
 connectDB();
@@ -57,6 +60,8 @@ app.use("/api/deposit-requests", depositRequestRoutes);
 app.use("/api/withdraw-requests", withdrawRequestRoutes);
 app.use('/api/games', gameRoutes);
 app.use("/api/refund-callback", refundCallbackRoutes);
+app.use("/api/refer-redeem", referRedeemRoutes);
+app.use("/api/user/refer-redeem", referRedeemHistoryRoutes);
 
 
 app.get("/", (req, res) => {

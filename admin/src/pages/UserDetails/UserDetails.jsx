@@ -14,13 +14,11 @@ import {
   FaLock,
   FaUserShield,
   FaUser,
+  FaGift,
+  FaIdBadge,
 } from "react-icons/fa";
 
 const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5007";
-
-// ────────────────────────────────────────────────
-// API Functions
-// ────────────────────────────────────────────────
 
 const fetchUser = async (id) => {
   const response = await axios.get(`${BASE_URL}/api/user/admin/${id}`);
@@ -33,6 +31,11 @@ const updateUser = async ({ id, formData }) => {
     formData,
   );
   return response.data;
+};
+
+const num = (value) => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : 0;
 };
 
 const UserDetails = () => {
@@ -49,8 +52,11 @@ const UserDetails = () => {
     defaultValues: {
       firstName: "",
       lastName: "",
+      username: "",
       phone: "",
       balance: 0,
+      referAmount: 0,
+      referAmountBalance: 0,
       status: "active",
       password: "",
     },
@@ -74,8 +80,11 @@ const UserDetails = () => {
       reset({
         firstName: user.firstName || "",
         lastName: user.lastName || "",
+        username: user.username || "",
         phone: user.phone || "",
-        balance: Number(user.balance ?? 0),
+        balance: num(user.balance),
+        referAmount: num(user.referAmount),
+        referAmountBalance: num(user.referAmountBalance),
         status: user.status || "active",
         password: "",
       });
@@ -103,8 +112,11 @@ const UserDetails = () => {
     const cleanData = {
       firstName: formData.firstName?.trim() || "",
       lastName: formData.lastName?.trim() || "",
+      username: formData.username?.trim().toLowerCase() || "",
       phone: formData.phone?.trim() || "",
-      balance: Number(formData.balance ?? 0),
+      balance: num(formData.balance),
+      referAmount: num(formData.referAmount),
+      referAmountBalance: num(formData.referAmountBalance),
       status: formData.status,
     };
 
@@ -114,6 +126,9 @@ const UserDetails = () => {
 
     mutation.mutate({ id, formData: cleanData });
   };
+
+  const inputClass =
+    "w-full px-5 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all";
 
   if (isLoading) {
     return (
@@ -145,7 +160,7 @@ const UserDetails = () => {
           </p>
           <button
             onClick={() => navigate("/all-user")}
-            className="bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 text-white px-8 py-3 rounded-lg font-medium shadow-lg shadow-red-900/40 transition-all"
+            className="bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 text-white px-8 py-3 rounded-lg font-medium shadow-lg shadow-red-900/40 transition-all cursor-pointer"
           >
             Back to Users
           </button>
@@ -161,10 +176,8 @@ const UserDetails = () => {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-gradient-to-br from-orange-950 via-red-950 to-black text-gray-100 p-4 md:p-6 lg:p-8"
     >
-      <div className="max-w-3xl mx-auto">
-        {/* Card container */}
+      <div className="max-w-4xl mx-auto">
         <div className="bg-gradient-to-br from-red-950/70 via-black/80 to-orange-950/40 rounded-2xl border border-red-800/40 shadow-2xl shadow-red-950/40 overflow-hidden backdrop-blur-sm">
-          {/* Header */}
           <div className="px-6 py-6 md:px-8 border-b border-red-800/50 bg-gradient-to-r from-red-950/60 to-black/60">
             <div className="flex items-center gap-4">
               <button
@@ -173,6 +186,7 @@ const UserDetails = () => {
               >
                 <FaArrowLeft className="w-6 h-6" />
               </button>
+
               <div>
                 <div className="flex items-center gap-3">
                   <FaUserEdit className="text-3xl text-orange-400" />
@@ -180,6 +194,7 @@ const UserDetails = () => {
                     Edit User
                   </h1>
                 </div>
+
                 <p className="mt-1 text-sm text-orange-200/70">
                   ID: <span className="font-mono text-orange-300">{id}</span> •
                   Phone:{" "}
@@ -191,128 +206,203 @@ const UserDetails = () => {
             </div>
           </div>
 
-          {/* Form */}
           <form
             onSubmit={handleSubmit(onSubmit)}
-            className="p-6 md:p-8 space-y-6"
+            className="p-6 md:p-8 space-y-7"
           >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="block text-sm font-medium text-orange-300 mb-2 flex items-center gap-2">
-                  <FaUser className="text-orange-400" /> First Name
-                </label>
-                <input
-                  {...register("firstName", {
-                    required: "Required",
-                    minLength: { value: 2, message: "Too short" },
-                  })}
-                  className="w-full px-5 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
-                />
-                {errors.firstName && (
-                  <p className="mt-1.5 text-sm text-red-400">
-                    {errors.firstName.message}
-                  </p>
-                )}
+            <div>
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-orange-100 border-b border-red-800/40 pb-3">
+                <FaUser className="text-orange-400" />
+                Basic Information
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Field
+                  label="First Name"
+                  icon={<FaUser />}
+                  error={errors.firstName?.message}
+                >
+                  <input
+                    {...register("firstName", {
+                      required: "Required",
+                      minLength: { value: 2, message: "Too short" },
+                    })}
+                    className={inputClass}
+                  />
+                </Field>
+
+                <Field
+                  label="Last Name"
+                  icon={<FaUser />}
+                  error={errors.lastName?.message}
+                >
+                  <input
+                    {...register("lastName", {
+                      required: "Required",
+                      minLength: { value: 2, message: "Too short" },
+                    })}
+                    className={inputClass}
+                  />
+                </Field>
+
+                <Field
+                  label="Username"
+                  icon={<FaIdBadge />}
+                  error={errors.username?.message}
+                >
+                  <input
+                    {...register("username", {
+                      required: "Required",
+                      minLength: { value: 6, message: "Must be 6 letters" },
+                      maxLength: { value: 6, message: "Must be 6 letters" },
+                      pattern: {
+                        value: /^[a-z]{6}$/,
+                        message: "Only 6 lowercase letters allowed",
+                      },
+                    })}
+                    placeholder="example: abcdef"
+                    className={inputClass}
+                  />
+                </Field>
+
+                <Field
+                  label="Phone Number"
+                  icon={<FaPhone />}
+                  error={errors.phone?.message}
+                >
+                  <input
+                    {...register("phone", {
+                      required: "Required",
+                      pattern: {
+                        value: /^01[3-9]\d{8}$/,
+                        message: "Invalid Bangladeshi phone number",
+                      },
+                    })}
+                    className={inputClass}
+                  />
+                </Field>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-orange-300 mb-2 flex items-center gap-2">
-                  <FaUser className="text-orange-400" /> Last Name
-                </label>
-                <input
-                  {...register("lastName", {
-                    required: "Required",
-                    minLength: { value: 2, message: "Too short" },
-                  })}
-                  className="w-full px-5 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
-                />
-                {errors.lastName && (
-                  <p className="mt-1.5 text-sm text-red-400">
-                    {errors.lastName.message}
-                  </p>
-                )}
-              </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-orange-300 mb-2 flex items-center gap-2">
-                <FaPhone className="text-orange-400" /> Phone Number
-              </label>
-              <input
-                {...register("phone", { required: "Required" })}
-                className="w-full px-5 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
-              />
-              {errors.phone && (
-                <p className="mt-1.5 text-sm text-red-400">
-                  {errors.phone.message}
-                </p>
-              )}
-            </div>
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-orange-100 border-b border-red-800/40 pb-3">
+                <FaWallet className="text-green-400" />
+                Wallet
+              </h2>
 
-            <div>
-              <label className="block text-sm font-medium text-orange-300 mb-2 flex items-center gap-2">
-                <FaWallet className="text-green-400" /> Balance
-              </label>
-              <input
-                type="number"
-                step="0.01"
-                {...register("balance", {
-                  required: "Required",
-                  valueAsNumber: true,
-                  min: { value: 0, message: "Cannot be negative" },
-                })}
-                className="w-full px-5 py-3 bg-black/50 border border-red-800/60 rounded-xl text-green-300 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
-              />
-              {errors.balance && (
-                <p className="mt-1.5 text-sm text-red-400">
-                  {errors.balance.message}
-                </p>
-              )}
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-orange-300 mb-2 flex items-center gap-2">
-                <FaUserShield className="text-orange-400" /> Status
-              </label>
-              <select
-                {...register("status")}
-                className="w-full px-5 py-3 bg-black/60 border border-red-800/60 rounded-xl text-orange-100 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all cursor-pointer"
+              <Field
+                label="Balance"
+                icon={<FaWallet />}
+                error={errors.balance?.message}
               >
-                <option value="active">Active</option>
-                <option value="inactive">Inactive</option>
-                <option value="blocked">Blocked</option>
-              </select>
+                <input
+                  type="number"
+                  step="0.01"
+                  {...register("balance", {
+                    required: "Required",
+                    valueAsNumber: true,
+                    min: { value: 0, message: "Cannot be negative" },
+                  })}
+                  className="w-full px-5 py-3 bg-black/50 border border-red-800/60 rounded-xl text-green-300 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
+                />
+              </Field>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-orange-300 mb-2 flex items-center gap-2">
-                <FaLock className="text-orange-400" /> New Password (optional)
-              </label>
-              <input
-                type="password"
-                {...register("password", {
-                  minLength: { value: 6, message: "At least 6 characters" },
-                })}
-                placeholder="Leave blank to keep current password"
-                className="w-full px-5 py-3 bg-black/50 border border-red-800/60 rounded-xl text-orange-100 placeholder-red-400 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all"
-              />
-              {errors.password && (
-                <p className="mt-1.5 text-sm text-red-400">
-                  {errors.password.message}
-                </p>
-              )}
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-orange-100 border-b border-red-800/40 pb-3">
+                <FaGift className="text-orange-400" />
+                Refer Amount
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <Field
+                  label="Refer Amount"
+                  icon={<FaGift />}
+                  error={errors.referAmount?.message}
+                >
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register("referAmount", {
+                      valueAsNumber: true,
+                      min: { value: 0, message: "Cannot be negative" },
+                    })}
+                    className={inputClass}
+                  />
+                </Field>
+
+                <Field
+                  label="Refer Amount Balance"
+                  icon={<FaGift />}
+                  error={errors.referAmountBalance?.message}
+                >
+                  <input
+                    type="number"
+                    step="0.01"
+                    {...register("referAmountBalance", {
+                      valueAsNumber: true,
+                      min: { value: 0, message: "Cannot be negative" },
+                    })}
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+            </div>
+
+            <div>
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-orange-100 border-b border-red-800/40 pb-3">
+                <FaUserShield className="text-orange-400" />
+                Account Control
+              </h2>
+
+              <Field label="Status" icon={<FaUserShield />}>
+                <select
+                  {...register("status")}
+                  className="w-full px-5 py-3 bg-black/60 border border-red-800/60 rounded-xl text-orange-100 focus:outline-none focus:border-orange-500 focus:ring-2 focus:ring-orange-500/30 transition-all cursor-pointer"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                  <option value="blocked">Blocked</option>
+                </select>
+              </Field>
+            </div>
+
+            <div>
+              <h2 className="mb-4 flex items-center gap-2 text-lg font-bold text-orange-100 border-b border-red-800/40 pb-3">
+                <FaLock className="text-orange-400" />
+                Security
+              </h2>
+
+              <Field
+                label="New Password Optional"
+                icon={<FaLock />}
+                error={errors.password?.message}
+              >
+                <input
+                  type="password"
+                  {...register("password", {
+                    validate: (value) => {
+                      if (!value) return true;
+                      return (
+                        value.trim().length >= 6 || "At least 6 characters"
+                      );
+                    },
+                  })}
+                  placeholder="Leave blank to keep current password"
+                  className={inputClass}
+                />
+              </Field>
             </div>
 
             <div className="pt-6 flex flex-col sm:flex-row gap-4">
               <button
                 type="submit"
                 disabled={isSubmitting || mutation.isPending}
-                className={`flex-1 flex items-center justify-center gap-3 px-6 py-3.5 rounded-xl font-medium text-white transition-all shadow-lg
-                  ${
-                    mutation.isPending
-                      ? "bg-green-700/50 cursor-wait"
-                      : "bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 shadow-red-900/50 hover:shadow-red-800/60"
-                  }`}
+                className={`flex-1 flex items-center justify-center gap-3 px-6 py-3.5 rounded-xl font-medium text-white transition-all shadow-lg ${
+                  mutation.isPending
+                    ? "bg-green-700/50 cursor-wait"
+                    : "bg-gradient-to-r from-orange-700 to-red-700 hover:from-orange-600 hover:to-red-600 shadow-red-900/50 hover:shadow-red-800/60 cursor-pointer"
+                }`}
               >
                 <FaSave className="w-5 h-5" />
                 {mutation.isPending ? "Saving..." : "Save Changes"}
@@ -321,7 +411,7 @@ const UserDetails = () => {
               <button
                 type="button"
                 onClick={() => navigate("/all-user")}
-                className="flex-1 sm:flex-none px-6 py-3.5 border border-red-800/50 rounded-xl text-orange-200 hover:bg-red-950/60 hover:text-orange-100 transition-all font-medium"
+                className="flex-1 sm:flex-none px-6 py-3.5 border border-red-800/50 rounded-xl text-orange-200 hover:bg-red-950/60 hover:text-orange-100 transition-all font-medium cursor-pointer"
               >
                 Cancel
               </button>
@@ -330,6 +420,19 @@ const UserDetails = () => {
         </div>
       </div>
     </motion.div>
+  );
+};
+
+const Field = ({ label, icon, error, children }) => {
+  return (
+    <div>
+      <label className="mb-2 flex items-center gap-2 text-sm font-medium text-orange-300">
+        <span className="text-orange-400">{icon}</span>
+        {label}
+      </label>
+      {children}
+      {error && <p className="mt-1.5 text-sm text-red-400">{error}</p>}
+    </div>
   );
 };
 

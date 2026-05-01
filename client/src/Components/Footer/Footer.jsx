@@ -68,10 +68,7 @@ const Footer = () => {
           <img
             src={`${import.meta.env.VITE_API_URL}${footer.logoUrl}`}
             alt="Footer Logo"
-            className="w-22 h-16 object-contain"
-            onError={(e) => {
-              e.target.src = "https://i.ibb.co.com/ZRxgPqjZ/images.jpg"; // fallback image
-            }}
+            className="w-48 h-16 object-contain"
           />
         </div>
 

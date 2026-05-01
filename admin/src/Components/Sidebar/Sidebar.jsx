@@ -25,6 +25,7 @@ import { GrAnnounce } from "react-icons/gr";
 import { motion } from "framer-motion";
 import { toast } from "react-toastify";
 import useAuth from "../../hook/useAuth";
+import { FaGift } from "react-icons/fa";
 
 const Sidebar = () => {
   const [open, setOpen] = useState(false);
@@ -55,6 +56,7 @@ const Sidebar = () => {
     { to: "/all-user", icon: <FaUsers />, text: "All-User" },
     { to: "/add-game", icon: <IoAppsSharp />, text: "Add Game" },
     { to: "/add-promotion", icon: <IoAppsSharp />, text: "Promotion Game" },
+    { to: "/refer-redeem-user", icon: <FaGift />, text: "Refer Redeem" },
   ];
 
   const depositSubItems = [

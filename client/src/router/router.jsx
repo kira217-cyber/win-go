@@ -13,6 +13,7 @@ import PromotionDetails from "../pages/PromotionDetails/PromotionDetails";
 import WithdrawHistory from "../pages/WithdrawHistory/WithdrawHistory";
 import DepositHistory from "../pages/DepositHistory/DepositHistory";
 import Turnover from "../pages/Turnover/Turnover";
+import ReedemWallet from "../pages/ReedemWallet/ReedemWallet";
 
 export const routes = createBrowserRouter([
   {
@@ -45,6 +46,14 @@ export const routes = createBrowserRouter([
         element: (
           <PrivateRoute>
             <Profile />
+          </PrivateRoute>
+        ),
+      },
+      {
+        path: "reedem-wallet",
+        element: (
+          <PrivateRoute>
+            <ReedemWallet />
           </PrivateRoute>
         ),
       },

@@ -5,6 +5,7 @@ import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import User from "../models/Users.js"; // ← সঠিক ইম্পোর্ট (User.js)
 import DepositTurnover from "../models/DepositTurnover.js";
+import ReferRedeemSetting from "../models/ReferRedeemSetting.js";
 
 const router = express.Router();
 
@@ -33,7 +34,6 @@ router.post("/register", async (req, res) => {
   try {
     const { firstName, lastName, phone, password, referCode } = req.body;
 
-    // ফোন নম্বর চেক
     let existingUser = await User.findOne({ phone });
     if (existingUser) {
       return res.status(400).json({
@@ -42,33 +42,37 @@ router.post("/register", async (req, res) => {
       });
     }
 
-    // রেফার কোড জেনারেট
     const generateReferCode = () =>
       Math.random().toString(36).substring(2, 8).toUpperCase();
+
     let myReferCode = generateReferCode();
     while (await User.findOne({ referCode: myReferCode })) {
       myReferCode = generateReferCode();
     }
 
-    // নতুন → username জেনারেট
     const username = await generateUsername();
 
-    // রেফারার চেক
+    const setting = await ReferRedeemSetting.findOne().sort({ createdAt: 1 });
+
+    const referAmountForNewUser =
+      setting && setting.isActive ? Number(setting.referAmountForAllUsers || 0) : 0;
+
     let referredBy = null;
+    let referrer = null;
+
     if (referCode) {
-      const referrer = await User.findOne({
-        referCode: referCode.toUpperCase(),
+      referrer = await User.findOne({
+        referCode: String(referCode).toUpperCase(),
       });
+
       if (referrer) {
         referredBy = referrer._id;
       }
     }
 
-    // পাসওয়ার্ড হ্যাশ
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
 
-    // নতুন ইউজার
     const newUser = new User({
       firstName,
       lastName,
@@ -76,15 +80,24 @@ router.post("/register", async (req, res) => {
       password: hashedPassword,
       referCode: myReferCode,
       referredBy,
-      username, // ← নতুন যোগ হলো
+      username,
       role: "user",
+
+      // ✅ admin setting থেকে new user এর referAmount set
+      referAmount: referAmountForNewUser,
+      referAmountBalance: 0,
     });
 
     await newUser.save();
 
-    if (referredBy) {
+    if (referredBy && referrer) {
+      const amountToAdd = Number(referrer.referAmount || 0);
+
       await User.findByIdAndUpdate(referredBy, {
         $push: { createdUsers: newUser._id },
+        $inc: {
+          referAmountBalance: amountToAdd,
+        },
       });
     }
 
@@ -100,9 +113,11 @@ router.post("/register", async (req, res) => {
         firstName: newUser.firstName,
         lastName: newUser.lastName,
         phone: newUser.phone,
-        username: newUser.username, // ← ফ্রন্টএন্ডে পাঠানো হচ্ছে
+        username: newUser.username,
         referCode: newUser.referCode,
         balance: newUser.balance,
+        referAmount: newUser.referAmount,
+        referAmountBalance: newUser.referAmountBalance,
       },
       token,
     });
@@ -420,13 +435,18 @@ router.put("/:id", async (req, res) => {
 // GET /api/user/admin/:id
 router.get("/admin/:id", async (req, res) => {
   try {
-    const user = await User.findById(req.params.id).select("-password -__v");
+    const user = await User.findById(req.params.id)
+      .populate("referredBy", "firstName lastName phone username referCode")
+      .populate("createdUsers", "firstName lastName phone username createdAt")
+      .select("-password -__v");
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
     res.status(200).json(user);
   } catch (err) {
-    console.error(err);
+    console.error("Get user details error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -434,13 +454,26 @@ router.get("/admin/:id", async (req, res) => {
 // PUT /api/user/admin/:id
 router.put("/admin/:id", async (req, res) => {
   try {
-    const { firstName, lastName, phone, balance, status, password } = req.body;
-
-    const updateData = {
+    const {
       firstName,
       lastName,
+      username,
       phone,
-      balance: Number(balance),
+      balance,
+      referAmount,
+      referAmountBalance,
+      status,
+      password,
+    } = req.body;
+
+    const updateData = {
+      firstName: String(firstName || "").trim(),
+      lastName: String(lastName || "").trim(),
+      username: String(username || "").trim().toLowerCase(),
+      phone: String(phone || "").trim(),
+      balance: Number(balance || 0),
+      referAmount: Number(referAmount || 0),
+      referAmountBalance: Number(referAmountBalance || 0),
       status,
     };
 
@@ -462,9 +495,27 @@ router.put("/admin/:id", async (req, res) => {
     res.status(200).json(updatedUser);
   } catch (err) {
     if (err.code === 11000) {
-      return res.status(400).json({ message: "Phone number already exists" });
+      const field = Object.keys(err.keyPattern || {})[0];
+
+      return res.status(400).json({
+        message:
+          field === "phone"
+            ? "Phone number already exists"
+            : field === "username"
+              ? "Username already exists"
+              : "Duplicate value already exists",
+      });
     }
-    console.error(err);
+
+    if (err.name === "ValidationError") {
+      const message = Object.values(err.errors || {})
+        .map((e) => e.message)
+        .join(", ");
+
+      return res.status(400).json({ message: message || "Validation error" });
+    }
+
+    console.error("Update user error:", err);
     res.status(500).json({ message: "Server error" });
   }
 });
